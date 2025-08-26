@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* 🌞 Light Mode */
+:root {
+  --background: #FAFAFA;     /* Soft White */
+  --foreground: #111111;     /* Deep Black */
+  --primary: #bb2b54;        /* Bold Magenta Purple */
+  --secondary: #F43F5E;      /* Passion Red */
+  --accent: #FACC15;         /* Premium Gold */
+  --muted: #F3F4F6;          /* Neutral Gray */
+  --border: #E5E7EB;         /* Light Gray */
+  --font-sans: "Geist Sans", sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}
+
+/* 🌑 Dark Mode */
+.dark {
+  --background: #0B0B0F;     /* Deep Charcoal Black */
+  --foreground: #F5F5F5;     /* Soft White */
+  --primary: #bb2b54;        /* Neon Erotic Purple */
+  --secondary: #F43F5E;      /* Vibrant Passion Red */
+  --accent: #FCD34D;         /* Golden Glow */
+  --muted: #1E1E24;          /* Dark Neutral Gray */
+  --border: #2D2D35;         /* Subtle Divider */
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* ✨ Premium CTA Gradient */
+.btn-gradient {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease-in-out;
+}
+.btn-gradient:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
+/* Custom backdrop-blur class */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px); /* Safari support */
+}
