@@ -1,14 +1,14 @@
 "use client";
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import HeroCarousel from '@/components/HeroCarousel';
-import ReleaseCalendar from '@/components/ReleaseCalendar';
-import ResearchArticles from '@/components/ResearchArticles';
-import PsychologicalQuiz from '@/components/ResearchQuiz';
-import Sidebar from '@/components/SideBar';
-import SubscriptionCTA from '@/components/Subscription';
-import VideoGrid from '@/components/VideoGrid';
-import { videos, textContent, quizTypes } from './../components/types';
+import Footer from '@/components/home/Footer';
+import Header from '@/components/home/Header';
+import HeroCarousel from '@/components/home/HeroCarousel';
+import ReleaseCalendar from '@/components/home/ReleaseCalendar';
+import ResearchArticles from '@/components/home/ResearchArticles';
+import PsychologicalQuiz from '@/components/home/ResearchQuiz';
+import Sidebar from '@/components/home/SideBar';
+import SubscriptionCTA from '@/components/home/Subscription';
+import VideoGrid from '@/components/home/VideoGrid';
+import { videos, textContent, quizTypes } from '../components/home/types';
 import { useState } from 'react';
 
 export default function Home() {

@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { XMarkIcon, FilmIcon, DocumentTextIcon, QuestionMarkCircleIcon, UserIcon, SunIcon, MoonIcon } from '@heroicons/react/24/solid';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface SidebarProps {
   isSidebarOpen: boolean;

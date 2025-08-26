@@ -55,7 +55,6 @@ export function useTheme() {
     return {
       theme: 'light',
       toggleTheme: () => {
-        console.warn('useTheme called outside ThemeProvider, using light theme');
       },
     } as ThemeContextType;
   }
