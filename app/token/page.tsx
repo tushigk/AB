@@ -98,17 +98,8 @@ export default function Pricing() {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-[#121212] to-gray100 text-white flex items-center justify-center p-6">
+      <div className="bg-gradient-to-r from-primary to-secondary text-white flex items-center justify-center p-6 h-full min-h-screen">
         <div className="w-full max-w-6xl">
-          <header className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-semibold">
-              Зөвлөгөөний токен багцууд
-            </h1>
-            <p className="text-gray-400 mt-2">
-              и-мэйл ээр эмчээс зөвлөгөө авах бүрт <span className="text-white">1 токен</span> хасагдана.
-            </p>
-          </header>
-
           <motion.div
             variants={container}
             initial="hidden"
