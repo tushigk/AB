@@ -1,4 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
+
 import React, { Dispatch, SetStateAction } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Modal from "react-modal";
@@ -6,12 +8,29 @@ import useSWR, { useSWRConfig } from "swr";
 import { paymentApi } from "@/apis";
 import { message } from "@/utils/toast";
 
+type PaymentUrl = {
+  link: string;
+  logo: string;
+  name: string;
+  description: string;
+};
+
+type Payment = {
+  invoice_id: string;
+  qr_image: string;
+  urls: PaymentUrl[];
+};
+
+type PaymentStatus = {
+  status: "PAID" | "PENDING" | string;
+};
+
 type Props = {
   setSuccessModalOpen: Dispatch<SetStateAction<boolean>>;
   successModalOpen: boolean;
-  payment: any;
+  payment?: Payment;
   loading: boolean;
-  onPaid?: () => void; // <-- callback to unlock article
+  onPaid?: () => void;
 };
 
 const PaymentModal = ({
@@ -23,11 +42,11 @@ const PaymentModal = ({
 }: Props) => {
   const { mutate: listMutate } = useSWRConfig();
 
-  const { data: paymentStatus, isValidating, mutate } = useSWR(
+  const { data: paymentStatus, isValidating, mutate } = useSWR<PaymentStatus>(
     payment?.invoice_id ? `swr.qpay.status.${payment.invoice_id}` : null,
     async () => {
-      const res = await paymentApi.getPaymentStatus(payment.invoice_id);
-      return res;
+      if (!payment) return null;
+      return await paymentApi.getPaymentStatus(payment.invoice_id);
     },
     {
       onSuccess(data) {
@@ -35,19 +54,19 @@ const PaymentModal = ({
           listMutate("swr.user.me");
           message.success("Төлбөр амжилттай хийгдлээ.");
           setSuccessModalOpen(false);
-          if (onPaid) onPaid();
+          onPaid?.();
         }
       },
-      refreshInterval: 5000, // automatically check payment every 5 seconds
+      refreshInterval: 5000,
     }
   );
 
   const handleCheckPayment = async () => {
-    await mutate(); // manual refresh
+    await mutate();
     if (paymentStatus?.status === "PAID") {
       message.success("Төлбөр төлөгдсөн");
       setSuccessModalOpen(false);
-      if (onPaid) onPaid();
+      onPaid?.();
     } else {
       message.error("⏳ Төлбөр хараахан хийгдээгүй байна.");
     }
@@ -57,14 +76,13 @@ const PaymentModal = ({
     <AnimatePresence>
       {successModalOpen && (
         <Modal
-        isOpen={successModalOpen}
-        onRequestClose={() => setSuccessModalOpen(false)}
-        appElement={document.getElementById("__next")!} 
-        ariaHideApp={false} 
-        className="relative mx-auto my-12 max-w-5xl w-full rounded-2xl bg-neutral-900 p-6 outline-none"
-        overlayClassName="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-      >
-
+          isOpen={successModalOpen}
+          onRequestClose={() => setSuccessModalOpen(false)}
+          appElement={document.getElementById("__next")!}
+          ariaHideApp={false}
+          className="relative mx-auto my-12 max-w-5xl w-full rounded-2xl bg-neutral-900 p-6 outline-none"
+          overlayClassName="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -116,7 +134,7 @@ const PaymentModal = ({
                   }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
                 >
-                  {payment.urls.map((u: any, i: number) => (
+                  {payment.urls.map((u, i) => (
                     <motion.a
                       key={i}
                       href={u.link}

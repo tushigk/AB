@@ -77,7 +77,7 @@ export default function Pricing() {
       console.log(res);
       setLoading(false)
       setPayment(res);
-    } catch (err: any) {
+    } catch (err) {
       console.log(err);
       setLoading(false)
     }

@@ -9,21 +9,19 @@ export default function QuizByIdPage() {
   const params = useParams();
   const quizId = Number(params.id);
 
-  const quiz = quizTypes.find((q) => q.id === quizId);
-  if (!quiz) return notFound();
-
   const [quizStep, setQuizStep] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [answers, setAnswers] = useState<string[]>([]);
+
+  const quiz = quizTypes.find((q) => q.id === quizId);
+  if (!quiz) return notFound();
 
   const handleUnlock = () => setUnlocked(true);
 
   const handleAnswer = (option: string) => {
-    setAnswers((prev) => [...prev, option]);
 
     if (quizStep < quiz.questions.length - 1) {
-      setQuizStep(quizStep + 1);
+      setQuizStep((prev) => prev + 1);
     } else {
       setCompleted(true);
     }
@@ -31,7 +29,6 @@ export default function QuizByIdPage() {
 
   const handleRestart = () => {
     setQuizStep(0);
-    setAnswers([]);
     setCompleted(false);
   };
 

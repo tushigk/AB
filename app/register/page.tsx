@@ -27,11 +27,16 @@ export default function RegisterPage() {
       await authApi.me();
       message.success("Амжилттай бүртгэгдлээ.");
       router.push("/");
-    } catch (err: any) {
-      message.error(err?.error?.message || "Алдаа гарлаа");
-    } finally {
-      setLoading(false);
-    }
+    }  catch (err: unknown) {
+  if (err instanceof Error) {
+    message.error(err.message);
+  } else if (typeof err === "object" && err && "error" in err) {
+    message.error((err as { error?: { message?: string } }).error?.message || "Алдаа гарлаа");
+  } else {
+    message.error("Алдаа гарлаа");
+  }
+}
+
   };
 
   return (
