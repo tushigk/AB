@@ -1,15 +1,21 @@
 "use client";
 
-import { LockClosedIcon } from "@heroicons/react/24/solid";
+import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import useSWR from "swr";
 import { textContent, TextContent } from "@/components/home/types";
 import { authApi } from "@/apis";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ArticlesPage() {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [unlockedArticles, setUnlockedArticles] = useState<number[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean;
+    articleId: number | null;
+    price: number;
+  }>({ open: false, articleId: null, price: 0 });
 
   // Fetch user tokens
   const fetchUser = async () => {
@@ -19,16 +25,27 @@ export default function ArticlesPage() {
   const { data: user, mutate } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
 
-  // Handle unlocking an article
-  const handleUnlock = async (itemId: number, price: number) => {
+  // Open confirmation modal
+  const openConfirmModal = (articleId: number, price: number) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
       return;
     }
+    setConfirmModal({ open: true, articleId, price });
+  };
 
-    setLoadingId(itemId);
+  // Confirm unlocking
+  const handleConfirmUnlock = async () => {
+    if (!confirmModal.articleId) return;
+
+    const id = confirmModal.articleId;
+    const price = confirmModal.price;
+
+    setLoadingId(id);
+    setConfirmModal({ ...confirmModal, open: false });
+
     try {
-      setUnlockedArticles((prev) => [...prev, itemId]);
+      setUnlockedArticles((prev) => [...prev, id]);
       const newUser = { ...user, tokens: tokens - price };
       mutate(newUser, false);
     } catch (err) {
@@ -36,6 +53,10 @@ export default function ArticlesPage() {
     } finally {
       setLoadingId(null);
     }
+  };
+
+  const handleCancel = () => {
+    setConfirmModal({ open: false, articleId: null, price: 0 });
   };
 
   return (
@@ -77,7 +98,7 @@ export default function ArticlesPage() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => handleUnlock(item.id, item.price)}
+                      onClick={() => openConfirmModal(item.id, item.price)}
                       disabled={loadingId === item.id}
                       className="mt-4 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
                     >
@@ -101,6 +122,53 @@ export default function ArticlesPage() {
           Таны токен: <span className="font-bold">{tokens}</span>
         </div>
       </div>
+
+      <AnimatePresence>
+        {confirmModal.open && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                  Токенээр нээх
+                </h3>
+                <button
+                  onClick={handleCancel}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="mb-6 text-gray-700 dark:text-gray-300">
+                Та {confirmModal.price} токен зарцуулж, энэ нийтлэлийн үзэх гэж байна!              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  Цуцлах
+                </button>
+                <button
+                  onClick={handleConfirmUnlock}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition transform"
+                >
+                  Баталгаажуулах
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

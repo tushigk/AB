@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { XMarkIcon, FilmIcon, DocumentTextIcon, QuestionMarkCircleIcon, UserIcon, SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 import { useTheme } from '../../context/ThemeContext';
+import { Wallet2 } from 'lucide-react';
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -48,7 +49,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
               { href: '/articles', icon: DocumentTextIcon, label: 'Мэдээ' },
               { href: '/quizzes', icon: QuestionMarkCircleIcon, label: 'Судалгааны тест' },
               { href: '/profile', icon: UserIcon, label: 'Профайл' },
-              { href: '/token', icon: UserIcon, label: 'Токен' },
+              { href: '/token', icon: Wallet2, label: 'Токен' },
             ].map((item) => (
               <Link
                 key={item.href}
