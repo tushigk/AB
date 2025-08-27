@@ -74,31 +74,33 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {quizTypes.map((quiz) => {
           const isUnlocked = unlockedQuizzes.includes(quiz.id);
 
           return (
             <div
               key={quiz.id}
-              className="relative bg-background border border-foreground/20 rounded-lg p-4 hover:shadow-lg hover:shadow-primary/20 transition"
+              className="bg-background border border-foreground/20 p-4 rounded-lg text-center shadow-md hover:shadow-primary/20 transition"
             >
               <img
                 src={quiz.image}
                 alt={quiz.title}
-                className="w-full h-72 object-cover rounded-lg mb-4"
+                className="w-full h-40 object-cover rounded-lg mb-3"
               />
-              <h3 className="text-xl font-heading font-semibold text-foreground">
+              <h3 className="font-heading font-bold text-foreground text-lg">
                 {quiz.title}
               </h3>
-              <p className="text-foreground/70 mt-2">{quiz.description}</p>
+              <p className="text-sm text-foreground/70 mt-2 line-clamp-2">
+                {quiz.description}
+              </p>
 
               {isUnlocked ? (
                 <Link
                   href={`/quizzes/${quiz.id}`}
-                  className="mt-4 flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
+                  className="mt-4 block w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-2 rounded-lg shadow-md"
                 >
-                  🔓 Тест нээгдсэн - Үзэх
+                  🔓 Нээгдсэн - Үзэх
                 </Link>
               ) : (
                 <button
@@ -115,7 +117,6 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
         })}
       </div>
 
-      {/* Confirm Modal */}
       <AnimatePresence>
         {confirmModal.open && (
           <motion.div

@@ -6,6 +6,7 @@ export interface Video {
   freeEpisodes: number[];
   videoUrls?: { [episode: number]: string }; 
   episodePrices?: { [episode: number]: number };
+  description?: string;
 }
 
 export interface TextContent {
@@ -50,7 +51,7 @@ export const videos: Video[] = [
       8: 50,
       9: 50,
       10: 50,
-    }},
+    }, description: 'Dive into the complexities of human behavior and decision-making processes.' },
   { id: 2, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
   { id: 3, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
   { id: 4, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },

@@ -1,16 +1,41 @@
 "use client";
-import { days } from './types';
+import { motion } from "framer-motion";
+import { days } from "./types";
 
 export default function ReleaseCalendar() {
   return (
-    <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
-      <h2 className="text-3xl font-heading font-bold text-foreground mb-4">Гарах хуваарь</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-4">
-        {days.map((day) => (
-          <div key={day} className="bg-background border border-foreground/20 p-4 rounded-lg text-center shadow-md hover:shadow-primary/20 transition">
-            <h3 className="font-heading font-bold text-foreground">{day}</h3>
-            <p className="text-sm text-foreground/70 mt-2">Хуваарь байхгүй байна</p>
-          </div>
+    <section className="max-w-6xl mx-auto py-16 px-6">
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="text-4xl md:text-5xl font-extrabold font-heading text-center text-foreground mb-10"
+      >
+        📅 Гарах хуваарь
+      </motion.h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-6">
+        {days.map((day, idx) => (
+          <motion.div
+            key={day}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            className="relative group bg-gradient-to-br from-background/80 to-background/40 
+                       backdrop-blur-lg border border-white/10 shadow-lg rounded-2xl 
+                       p-6 flex flex-col items-center justify-center 
+                       hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/30 
+                       transition duration-300 ease-out"
+          >
+            <h3 className="text-lg md:text-xl font-bold font-heading text-foreground group-hover:text-primary transition">
+              {day}
+            </h3>
+            <p className="text-sm text-foreground/60 mt-2">
+              Хуваарь байхгүй байна
+            </p>
+
+            <span className="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-primary to-secondary group-hover:w-full transition-all duration-300 rounded-b-2xl" />
+          </motion.div>
         ))}
       </div>
     </section>
