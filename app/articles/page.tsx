@@ -1,22 +1,36 @@
 "use client";
+
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import PaymentModal from "@/components/modal/payment";
-import { textContent } from "@/components/home/types";
-import { paymentApi } from "@/apis";
+import useSWR from "swr";
+import { textContent, TextContent } from "@/components/home/types";
+import { authApi } from "@/apis";
+import Link from "next/link";
 
 export default function ArticlesPage() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [payment, setPayment] = useState<any>(null);
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [unlockedArticles, setUnlockedArticles] = useState<number[]>([]);
 
-  const handlePay = async (itemId: number, price: number) => {
+  // Fetch user tokens
+  const fetchUser = async () => {
+    const res = await authApi.me();
+    return res;
+  };
+  const { data: user, mutate } = useSWR("userMe", fetchUser);
+  const tokens = user?.tokens || 0;
+
+  // Handle unlocking an article
+  const handleUnlock = async (itemId: number, price: number) => {
+    if (tokens < price) {
+      alert("Таны токен хүрэлцэхгүй байна!");
+      return;
+    }
+
     setLoadingId(itemId);
     try {
-      const res = await paymentApi.onPayment(price);
-      setPayment(res);
-      setModalOpen(true);
+      setUnlockedArticles((prev) => [...prev, itemId]);
+      const newUser = { ...user, tokens: tokens - price };
+      mutate(newUser, false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -31,8 +45,8 @@ export default function ArticlesPage() {
           Бүх мэдээ мэдээлэл
         </h1>
 
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-          {textContent.map((item) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          {textContent.map((item: TextContent) => {
             const isUnlocked = unlockedArticles.includes(item.id);
             return (
               <div
@@ -55,17 +69,22 @@ export default function ArticlesPage() {
                   </p>
 
                   {isUnlocked ? (
-                    <p className="mt-4 text-green-400 font-semibold animate-pulse">
-                      Агуулга нээгдсэн
-                    </p>
+                    <Link
+                      href={`/articles/${item.id}`}
+                      className="mt-4 flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
+                    >
+                      🔓 Агуулга нээгдсэн - Үзэх
+                    </Link>
                   ) : (
                     <button
-                      onClick={() => handlePay(item.id, item.price)}
+                      onClick={() => handleUnlock(item.id, item.price)}
                       disabled={loadingId === item.id}
                       className="mt-4 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
                     >
                       <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === item.id ? "Бэлтгэж байна..." : `Нээх ${item.price}₮`}
+                      {loadingId === item.id
+                        ? "Нээж байна..."
+                        : `Нээх (${item.price} токен)`}
                     </button>
                   )}
                 </div>
@@ -77,19 +96,11 @@ export default function ArticlesPage() {
             );
           })}
         </div>
-      </div>
 
-      <PaymentModal
-        payment={payment}
-        successModalOpen={modalOpen}
-        setSuccessModalOpen={setModalOpen}
-        loading={loadingId !== null}
-        onPaid={() => {
-          if (payment?.itemId) {
-            setUnlockedArticles((prev) => [...prev, payment.itemId]);
-          }
-        }}
-      />
+        <div className="mt-8 text-center text-foreground text-lg">
+          Таны токен: <span className="font-bold">{tokens}</span>
+        </div>
+      </div>
     </div>
   );
 }

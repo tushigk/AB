@@ -1,31 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PlayIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
+import useSWR from "swr";
 import { Video } from "./types";
-import { authApi } from "@/apis"; 
+import { authApi } from "@/apis";
 
 interface Props {
   video: Video;
 }
 
+const fetchUser = async () => {
+  const res = await authApi.me();
+  return res; 
+};
+
 export default function VideoEpisodes({ video }: Props) {
   const [loadingEpisode, setLoadingEpisode] = useState<number | null>(null);
   const [unlockedEpisodes, setUnlockedEpisodes] = useState<number[]>([]);
-  const [tokens, setTokens] = useState<number>(0);
 
-  useEffect(() => {
-    async function fetchMe() {
-      try {
-        const res = await authApi.me();
-        setTokens(res.tokens || 0);
-      } catch (err) {
-        console.error("Failed to load user:", err);
-      }
-    }
-    fetchMe();
-  }, []);
+  const { data: user, mutate } = useSWR("userMe", fetchUser);
+  const tokens = user?.tokens || 0;
 
   const handleUnlock = async (episode: number, price: number) => {
     if (tokens < price) {
@@ -35,9 +31,11 @@ export default function VideoEpisodes({ video }: Props) {
 
     setLoadingEpisode(episode);
     try {
-      const newBalance = tokens - price;
-      setTokens(newBalance);
       setUnlockedEpisodes((prev) => [...prev, episode]);
+
+      const newUser = { ...user, tokens: tokens - price };
+      mutate(newUser, false);
+
     } catch (err) {
       console.error("Failed to unlock episode:", err);
     } finally {
@@ -52,6 +50,7 @@ export default function VideoEpisodes({ video }: Props) {
           (episode) => {
             const isFree = video.freeEpisodes.includes(episode);
             const isUnlocked = unlockedEpisodes.includes(episode);
+            const price = video.episodePrices?.[episode] ?? 1; 
 
             return (
               <div
@@ -79,14 +78,14 @@ export default function VideoEpisodes({ video }: Props) {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => handleUnlock(episode, 1)} 
+                      onClick={() => handleUnlock(episode, price)}
                       disabled={loadingEpisode === episode}
                       className="inline-flex items-center bg-gradient-to-r from-secondary to-accent text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
                     >
                       <LockClosedIcon className="w-4 h-4 mr-1" />
                       {loadingEpisode === episode
                         ? "Нээж байна..."
-                        : "Нээх (1 токен)"}
+                        : `Нээх (${price} токен)`}
                     </button>
                   )}
                 </div>
