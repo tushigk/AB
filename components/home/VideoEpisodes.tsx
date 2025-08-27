@@ -1,31 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlayIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import PaymentModal from "@/components/modal/payment";
 import { Video } from "./types";
-import { paymentApi } from "@/apis";
+import { authApi } from "@/apis"; 
 
 interface Props {
   video: Video;
 }
 
 export default function VideoEpisodes({ video }: Props) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [payment, setPayment] = useState<any>(null);
   const [loadingEpisode, setLoadingEpisode] = useState<number | null>(null);
   const [unlockedEpisodes, setUnlockedEpisodes] = useState<number[]>([]);
+  const [tokens, setTokens] = useState<number>(0);
 
-  const handlePay = async (episode: number, price: number) => {
+  useEffect(() => {
+    async function fetchMe() {
+      try {
+        const res = await authApi.me();
+        setTokens(res.tokens || 0);
+      } catch (err) {
+        console.error("Failed to load user:", err);
+      }
+    }
+    fetchMe();
+  }, []);
+
+  const handleUnlock = async (episode: number, price: number) => {
+    if (tokens < price) {
+      alert("Таны токен хүрэлцэхгүй байна!");
+      return;
+    }
+
     setLoadingEpisode(episode);
     try {
-      const res = await paymentApi.onPayment(price);
-      res.itemId = episode; 
-      setPayment(res);
-      setModalOpen(true);
+      const newBalance = tokens - price;
+      setTokens(newBalance);
+      setUnlockedEpisodes((prev) => [...prev, episode]);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to unlock episode:", err);
     } finally {
       setLoadingEpisode(null);
     }
@@ -65,14 +79,14 @@ export default function VideoEpisodes({ video }: Props) {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => handlePay(episode, 1000)}
+                      onClick={() => handleUnlock(episode, 1)} 
                       disabled={loadingEpisode === episode}
                       className="inline-flex items-center bg-gradient-to-r from-secondary to-accent text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
                     >
                       <LockClosedIcon className="w-4 h-4 mr-1" />
                       {loadingEpisode === episode
-                        ? "Бэлтгэж байна..."
-                        : "Нээх (1000₮)"}
+                        ? "Нээж байна..."
+                        : "Нээх (1 токен)"}
                     </button>
                   )}
                 </div>
@@ -82,17 +96,9 @@ export default function VideoEpisodes({ video }: Props) {
         )}
       </div>
 
-      <PaymentModal
-        payment={payment}
-        successModalOpen={modalOpen}
-        setSuccessModalOpen={setModalOpen}
-        loading={loadingEpisode !== null}
-        onPaid={() => {
-          if (payment?.itemId) {
-            setUnlockedEpisodes((prev) => [...prev, payment.itemId]);
-          }
-        }}
-      />
+      <div className="mt-6 text-sm text-gray-500">
+        Таны токен: <span className="font-bold">{tokens}</span>
+      </div>
     </>
   );
 }

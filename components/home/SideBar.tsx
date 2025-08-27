@@ -48,6 +48,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
               { href: '/articles', icon: DocumentTextIcon, label: 'Мэдээ' },
               { href: '/quizzes', icon: QuestionMarkCircleIcon, label: 'Судалгааны тест' },
               { href: '/profile', icon: UserIcon, label: 'Профайл' },
+              { href: '/token', icon: UserIcon, label: 'Токен' },
             ].map((item) => (
               <Link
                 key={item.href}

@@ -49,7 +49,7 @@ export default function VideoGrid({ videos, initialCount = 8 }: VideoGridProps) 
               <div className="mt-2">
                 {item.freeEpisodes.includes(1) ? (
                   <Link
-                    href={`/videos/${item.id}/part/1`}
+                    href={`/videos/${item.id}`}
                     className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     aria-label={`Watch ${item.title} part 1 for free`}
                   >

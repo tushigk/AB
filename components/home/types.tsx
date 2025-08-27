@@ -4,6 +4,7 @@ export interface Video {
   thumbnail: string;
   episodes: number;
   freeEpisodes: number[];
+  videoUrls?: { [episode: number]: string }; 
 }
 
 export interface TextContent {
@@ -31,7 +32,10 @@ export interface QuizType {
 }
 
 export const videos: Video[] = [
-  { id: 1, title: 'Human Behavior Study', thumbnail: '/image.webp', episodes: 30, freeEpisodes: [1, 2, 3, 4, 5] },
+  { id: 1, title: 'Human Behavior Study', thumbnail: '/image.webp', episodes: 30, freeEpisodes: [1, 2, 3, 4, 5] ,videoUrls: {
+      1: "/video.mp4",
+      2: "/video.mp4",
+    },},
   { id: 2, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
   { id: 3, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
   { id: 4, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
