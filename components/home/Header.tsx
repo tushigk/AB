@@ -57,15 +57,23 @@ export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
             )}
           </button>
 
-          <Link href="/" className="flex items-center">
-          <div className="flex items-center">
-          {theme === "dark" ? (
-            <img src="/logodark.png" alt="Logo Dark" className="w-20 h-12 md:w-28 md:h-16" />
-          ) : (
-            <img src="/logolight.png" alt="Logo Light" className="w-20 h-12 md:w-28 md:h-16" />
-          )}
-        </div>
-      </Link>
+          <Link href="/" className="flex items-center ml-5">
+            <div className="flex items-center">
+              {theme === "dark" ? (
+                <img
+                  src="/logodark.png"
+                  alt="Logo Dark"
+                  className="w-20 h-12 md:w-28 md:h-16"
+                />
+              ) : (
+                <img
+                  src="/logolight.png"
+                  alt="Logo Light"
+                  className="w-20 h-12 md:w-28 md:h-16"
+                />
+              )}
+            </div>
+          </Link>
         </div>
 
         <div className="relative hidden md:block w-64">

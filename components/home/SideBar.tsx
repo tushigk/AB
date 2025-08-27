@@ -63,16 +63,22 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
             ))}
           </nav>
 
-          <div className="mt-auto">
-            <button
-              onClick={toggleTheme}
-              className="w-full flex items-center dark:text-foreground hover:bg-primary/10 dark:hover:bg-primary-900/30 hover:text-primary dark:hover:text-primary-300 rounded-md px-4 py-3 text-lg font-medium transition-colors"
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? <MoonIcon className="w-5 h-5 mr-3" /> : <SunIcon className="w-5 h-5 mr-3" />}
-              {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-            </button>
-          </div>
+          <div className="p-6 border-t border-white/20">
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-center px-4 py-3 rounded-xl
+                  bg-gradient-to-r from-primary/90 to-primary text-white font-medium shadow-lg
+                  hover:scale-[1.02] transition-transform"
+                aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              >
+                {theme === "light" ? (
+                  <MoonIcon className="w-5 h-5 mr-2" />
+                ) : (
+                  <SunIcon className="w-5 h-5 mr-2" />
+                )}
+                {theme === "light" ? "Dark Mode" : "Light Mode"}
+              </button>
+            </div>
         </div>
       </div>
     </div>
