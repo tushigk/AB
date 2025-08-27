@@ -25,7 +25,6 @@ export default function LoginPage() {
   setLoading(true);
   try {
     await authApi.login(data);
-    await authApi.me(); 
     message.success("Амжилттай нэвтэрлээ.");
     router.push("/");
   } catch (err: any) {

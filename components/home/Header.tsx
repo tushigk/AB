@@ -7,48 +7,39 @@ import {
 } from "@heroicons/react/24/solid";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { authApi } from "@/apis";
 import { IUser } from "@/models/user";
 import { logout } from "@/store/auth-slice";
 import { message } from "antd";
 import { useDispatch } from "react-redux";
+import Link from "next/link";
 
 interface HeaderProps {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
 }
 
+const fetcher = async () => {
+  const res = await authApi.me();
+  return res;
+};
+
 export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
-  const [user, setUser] = useState<IUser | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await authApi.me();
-        setUser(data);
-      } catch (err) {
-        setUser(null);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { data: user, error } = useSWR<IUser | null>("me", fetcher);
 
   const handleLogout = async () => {
     try {
       dispatch(logout());
-      router.push("/auth/login");
-      setMobileOpen(false);
-    } catch (error: any) {
+      router.push("/");
+    } catch (err) {
       message.error("Алдаа гарлаа");
     }
   };
-
 
   return (
     <header className="bg-background backdrop-blur-md border-foreground/20 p-3 md:p-4 sticky top-0 z-50">
@@ -66,13 +57,15 @@ export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
             )}
           </button>
 
+          <Link href="/" className="flex items-center">
           <div className="flex items-center">
-            {theme === "dark" ? (
-              <img src="/logo2.png" alt="Logo Dark" className="w-20 h-12 md:w-28 md:h-16" />
-            ) : (
-              <img src="/logo.png" alt="Logo Light" className="w-20 h-12 md:w-28 md:h-16" />
-            )}
-          </div>
+          {theme === "dark" ? (
+            <img src="/logo2.png" alt="Logo Dark" className="w-20 h-12 md:w-28 md:h-16" />
+          ) : (
+            <img src="/logo.png" alt="Logo Light" className="w-20 h-12 md:w-28 md:h-16" />
+          )}
+        </div>
+      </Link>
         </div>
 
         <div className="relative hidden md:block w-64">
@@ -105,7 +98,6 @@ export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
             </>
           ) : (
             <>
-              <span className="text-sm md:text-base">Сайн уу, {user.username}</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-sm md:text-base hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
