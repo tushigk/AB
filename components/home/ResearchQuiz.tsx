@@ -1,37 +1,47 @@
 "use client";
-import { useState } from 'react';
-import { QuizType, QuizQuestion } from './types';
+import { useState } from "react";
+import { QuizType } from "./types";
+import { paymentApi } from "@/apis";
+import PaymentModal from "@/components/modal/payment";
+import Link from "next/link";
 
 interface PsychologicalQuizProps {
   quizTypes: QuizType[];
 }
 
 export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps) {
-  const [quizStep, setQuizStep] = useState<number>(0); // 0: Select quiz, 1: Payment, 2+: Quiz questions
+  const [quizStep, setQuizStep] = useState<number>(0);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizType | null>(null);
   const [paymentCompleted, setPaymentCompleted] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [payment, setPayment] = useState<any>(null);
 
-  // Handle quiz type selection
   const handleQuizSelect = (quiz: QuizType) => {
     setSelectedQuiz(quiz);
-    setQuizStep(1); // Move to payment step
+    setQuizStep(1); 
   };
 
-  // Mock payment handling (replace with actual payment integration)
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedQuiz) return;
-    alert(`Payment of $${(selectedQuiz.price / 100).toFixed(2)} processed successfully!`);
-    setPaymentCompleted(true);
-    setQuizStep(2); // Move to first question
+    setLoading(true);
+    try {
+      const res = await paymentApi.onPayment(selectedQuiz.price);
+      res.itemId = selectedQuiz.id; 
+      setPayment(res);
+      setModalOpen(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle quiz answer
   const handleQuizAnswer = (option: string) => {
     if (!selectedQuiz) return;
     if (quizStep - 2 < selectedQuiz.questions.length - 1) {
       setQuizStep(quizStep + 1);
     } else {
-      alert(`Асуулт дууслаа! Үр дүн: ${option}`);
       setQuizStep(0);
       setSelectedQuiz(null);
       setPaymentCompleted(false);
@@ -40,12 +50,19 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
 
   return (
     <section className="md:max-w-4/5 mx-auto py-12 px-12">
+      <div className="flex items-center justify-between mb-6">
       <h2 className="text-3xl font-heading font-bold text-foreground mb-4">
         Өөрийгөө илүү мэдмээр байна уу? 🤔
       </h2>
+      <Link
+          href="/quizzes"
+          className="text-primary hover:underline font-medium"
+        >
+          Бүгдийг үзэх →
+        </Link>
+      </div>
 
       {quizStep === 0 ? (
-        // Quiz selection step
         <div className="bg-background border border-foreground/20 p-6 rounded-lg shadow-md">
           <p className="mb-4 text-foreground/70">Тестийг бөглөөд өөрийгөө нээ!</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,19 +86,17 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
           </div>
         </div>
       ) : quizStep === 1 && selectedQuiz ? (
-        // Payment step
         <div className="bg-background border border-foreground/20 p-6 rounded-lg shadow-md text-center">
           <img src={selectedQuiz.image} alt={selectedQuiz.title} className="w-full h-80 object-contain rounded-lg mb-4" />
-          <h3 className="text-xl font-heading font-semibold text-foreground">
-            {selectedQuiz.title}
-          </h3>
+          <h3 className="text-xl font-heading font-semibold text-foreground">{selectedQuiz.title}</h3>
           <p className="text-foreground/70 mb-4">Үнэ: {(selectedQuiz.price / 100).toFixed(2)}₮</p>
           <button
             onClick={handlePayment}
+            disabled={loading}
             className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2 rounded-full hover:opacity-90 transition"
             aria-label={`Pay for ${selectedQuiz.title}`}
           >
-            Төлөх
+            {loading ? "Бэлтгэж байна..." : "Төлөх"}
           </button>
           <button
             onClick={() => setQuizStep(0)}
@@ -92,7 +107,6 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
           </button>
         </div>
       ) : paymentCompleted && selectedQuiz ? (
-        // Quiz questions
         <div className="bg-background border border-foreground/20 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-heading font-semibold text-foreground">
             {selectedQuiz.questions[quizStep - 2].question}
@@ -102,7 +116,7 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
               <div
                 className="bg-gradient-to-r from-primary to-accent h-2.5 rounded-full"
                 style={{ width: `${((quizStep - 1) / selectedQuiz.questions.length) * 100}%` }}
-              ></div>
+              />
             </div>
             <p className="text-sm text-foreground/70 mt-2">
               Question {quizStep - 1} of {selectedQuiz.questions.length}
@@ -123,6 +137,14 @@ export default function PsychologicalQuiz({ quizTypes }: PsychologicalQuizProps)
           </div>
         </div>
       ) : null}
+
+      <PaymentModal
+        payment={payment}
+        successModalOpen={modalOpen}
+        setSuccessModalOpen={setModalOpen}
+        loading={loading}
+        onPaid={() => setPaymentCompleted(true)}
+      />
     </section>
   );
 }
