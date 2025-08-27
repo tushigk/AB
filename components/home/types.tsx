@@ -12,6 +12,7 @@ export interface TextContent {
   preview: string;
   price: number;
   image: string;
+  fullText?: string;
 }
 
 export interface QuizQuestion {

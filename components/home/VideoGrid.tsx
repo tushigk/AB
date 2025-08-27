@@ -18,14 +18,17 @@ export default function VideoGrid({ videos, initialCount = 8 }: VideoGridProps) 
   return (
     <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
       <div className='flex items-center justify-between mb-6'>
-        <h2 className="text-3xl font-heading font-bold text-foreground">Сүүлд гарсан</h2>
         {videos.length > initialCount && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="px-6 py-2 bg-primary text-white rounded-2xl hover:opacity-90 transition"
-          >
-            {showAll ? 'Буцаах' : 'Бүгдийг үзэх'}
-          </button>
+          <>
+        <h2 className="text-3xl font-heading font-bold text-foreground">Сүүлд гарсан</h2>
+          
+          <Link
+          href="/videos"
+          className="text-primary hover:underline font-medium"
+        >
+          Бүгдийг үзэх →
+        </Link>
+          </>
         )}
       </div>
 
