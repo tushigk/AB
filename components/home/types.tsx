@@ -70,8 +70,8 @@ export const textContent: TextContent[] = [
 
 
 export const quizContent: TextContent[] = [
-  { id: 1, title: 'Quiz1', preview: 'Uncover how biases shape decisions...', price: 2500 , image: '/test.png'},
-  { id: 2, title: 'Quiz2', preview: 'Explore group behavior patterns...', price: 1000 , image: '/test.png'},
+  { id: 1, title: 'Quiz1', preview: 'Uncover how biases shape decisions...', price: 10 , image: '/test.png'},
+  { id: 2, title: 'Quiz2', preview: 'Explore group behavior patterns...', price: 50 , image: '/test.png'},
 ];
 
 export const days: string[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];

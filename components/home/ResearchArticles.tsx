@@ -90,7 +90,7 @@ export default function ResearchArticles({ textContent }: ResearchArticlesProps)
                   className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                 >
                   <LockClosedIcon className="w-5 h-5" />
-                  {loadingId === item.id ? "Нээж байна..." : `Нээх ${item.price}₮`}
+                  {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.price} токен)`}
                 </button>
               )}
             </div>
