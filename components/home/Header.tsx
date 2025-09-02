@@ -42,7 +42,7 @@ export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="bg-background backdrop-blur-md border-foreground/20 p-3 md:p-4 sticky top-0 z-50">
+    <header className="bg-background backdrop-blur-md border-foreground/20 p-3 md:p-4 sticky top-0 z-50 h-[90px]">
       <div className="max-w-full mx-auto flex justify-between items-center">
         <div className="flex items-center gap-3 md:gap-4">
           <button

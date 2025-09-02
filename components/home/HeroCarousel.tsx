@@ -18,7 +18,7 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
       <Swiper
         modules={[Navigation, Autoplay]}
         navigation
-        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        autoplay={{ delay: 5000, disableOnInteraction: false }}
         loop
         className="h-full"
       >
