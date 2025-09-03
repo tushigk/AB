@@ -46,7 +46,7 @@ export default function Home() {
       <HeroCarousel videos={videos} />
       <ReleaseCalendar />
       <VideoGrid videos={videos} />
-      <ResearchArticles textContent={textContent} />
+      <ResearchArticles />
       <PsychologicalQuiz quizTypes={quizTypes} />
       <SubscriptionCTA />
       <Footer />
