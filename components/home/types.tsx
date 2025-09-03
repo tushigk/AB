@@ -1,10 +1,10 @@
 export interface Video {
-  id: number;
+  id: string | number; 
   title: string;
   thumbnail: string;
   episodes: number;
   freeEpisodes: number[];
-  videoUrls?: { [episode: number]: string }; 
+  videoUrls?: { [episode: number]: string };
   episodePrices?: { [episode: number]: number };
   description?: string;
 }
@@ -32,35 +32,6 @@ export interface QuizType {
   questions: QuizQuestion[];
   image: string;
 }
-
-export const videos: Video[] = [
-  { id: 1, title: 'Human Behavior Study', thumbnail: '/image.webp', episodes: 10, freeEpisodes: [1, 2, 3, 4, 5] ,videoUrls: {
-      1: "/video.mp4",
-      2: "/video.mp4",
-      3: "/video.mp4",
-      4: "/video.mp4",
-      5: "/video.mp4",
-      6: "/video.mp4",
-      7: "/video.mp4",
-      8: "/video.mp4",
-      9: "/video.mp4",
-      10: "/video.mp4",
-    },episodePrices: {
-      6: 10,
-      7: 50,
-      8: 50,
-      9: 50,
-      10: 50,
-    }, description: 'Dive into the complexities of human behavior and decision-making processes.' },
-  { id: 2, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 3, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 4, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 5, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 6, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 7, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 8, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-  { id: 9, title: 'Ethics in Decision-Making', thumbnail: '/image2.webp', episodes: 25, freeEpisodes: [1, 2, 3, 4] },
-];
 
 export const textContent: TextContent[] = [
   { id: 1, title: 'Cognitive Bias Analysis', preview: 'Uncover how biases shape decisions...', price: 10, image: '/education.png', fullText: '' },

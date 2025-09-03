@@ -25,12 +25,10 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
         {videos.map((item) => (
           <SwiperSlide key={item.id}>
             <div className="relative w-full h-full">
-              <Image
+              <img
                 src={item.thumbnail}
                 alt={item.title}
-                fill
                 className="object-cover brightness-[0.75]"
-                priority
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />

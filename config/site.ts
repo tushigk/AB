@@ -1,15 +1,14 @@
 export const siteConfig = {
-  name: "Emchliy",
-  url: "https://www.admin.closedroom.mn",
-  ogImage: "https://www.admin.closedroom.mn",
-  description: "Томчуудад зориулсан.",
+  name: "ClosedRoom",
+  description: "ClosedRoom admin",
   links: {
-    youtube: "https://www.youtube.com",
-    twitter: "https://twitter.com",
+    youtube: "https://youtube.com/closedroom",
+    twitter: "https://twitter.com/closedroom",
   },
 };
 
-// export const siteUrl = "http://localhost:3011";
-export const siteUrl = "https://emchliy.closedroom.mn";
+export const siteUrl = "http://localhost:3011"
+
+// export const siteUrl = "https://server.closedroom.mn"
 
 export type SiteConfig = typeof siteConfig;
