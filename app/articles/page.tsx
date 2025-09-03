@@ -87,7 +87,7 @@ export default function ArticlesPage() {
           </button>
           {categories?.map((cat) => (
             <button
-              key={cat.id}
+              key={cat.id + cat.name}
               onClick={() => setSelectedCategory(cat.name)}
               className={`px-4 py-2 rounded-lg ${
                 selectedCategory === cat.name
@@ -104,11 +104,11 @@ export default function ArticlesPage() {
           <p>⏳ Уншиж байна...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {articles.map((item: TextContent) => {
+            {articles?.map((item: TextContent) => {
               const isUnlocked = unlockedArticles.includes(item.id);
               return (
                 <div
-                  key={item.id}
+                  key={item.id + item.title}
                   className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-800 via-gray-900 to-black hover:scale-105 transform transition duration-500 group"
                 >
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition duration-300"></div>

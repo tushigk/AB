@@ -5,3 +5,4 @@ export * as paymentApi from "./payment";
 export * as categoryApi from "./category";
 export * as dramaApi from "./video";
 export * as articleApi from "./article";
+export * as bannerApi from "./banner";
