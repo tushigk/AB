@@ -3,57 +3,75 @@
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import useSWR from "swr";
-import { TextContent } from "./types";
 import { authApi } from "@/apis";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getArticles } from "@/apis/article";
+import { getArticles, purchaseArticle } from "@/apis/article";
+import { Article } from "./types";
 
 export default function ResearchArticles() {
-  const [loadingId, setLoadingId] = useState<number | null>(null);
-  const [unlockedArticles, setUnlockedArticles] = useState<number[]>([]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [unlockedArticles, setUnlockedArticles] = useState<string[]>([]); 
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
-    articleId: number | null;
+    articleId: string | null;
     price: number;
   }>({ open: false, articleId: null, price: 0 });
   const [page, setPage] = useState<number>(1);
 
-  // Fetch user tokens
   const fetchUser = async () => await authApi.me();
-  const { data: user, mutate } = useSWR("userMe", fetchUser);
+  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
 
-  // Fetch articles
-  const { data: articlesRes, isLoading } = useSWR(
-    `articles.${page}`,
-    () => getArticles({ page })
+  const { data: articlesRes, isLoading, error: articlesError } = useSWR(`articles.${page}`, () =>
+    getArticles({ page })
   );
-  const articles: TextContent[] = articlesRes?.data || [];
+  const articles: Article[] = articlesRes?.data || [];
 
-  // Unlock logic
-  const openConfirmModal = (articleId: number, price: number) => {
-    if (tokens < price) return alert("Таны токен хүрэлцэхгүй байна!");
+  const openConfirmModal = (articleId: string, price: number) => {
+    if (tokens < price) {
+      alert("Таны токен хүрэлцэхгүй байна!");
+      return;
+    }
     setConfirmModal({ open: true, articleId, price });
   };
 
-  const handleConfirmUnlock = () => {
+  const handleConfirmUnlock = async () => {
     if (!confirmModal.articleId) return;
+
     const id = confirmModal.articleId;
     const price = confirmModal.price;
+
     setLoadingId(id);
     setConfirmModal({ ...confirmModal, open: false });
 
-    setUnlockedArticles((prev) => [...prev, id]);
-    mutate({ ...user, tokens: tokens - price }, false);
-    setLoadingId(null);
+    try {
+      const response = await purchaseArticle(id);
+      if (response.message === "Нийтлэл амжилттай худалдаж авлаа") {
+        setUnlockedArticles((prev) => [...prev, id]);
+        const newUser = { ...user, tokens: tokens - price };
+        mutate(newUser, { revalidate: true });
+      } else {
+        throw new Error("Purchase failed");
+      }
+    } catch (err: any) {
+      console.error("Unlock Error:", err);
+      alert(
+        err.message === "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
+          ? "Энэ нийтлэл аль хэдийн нээгдсэн байна."
+          : "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу."
+      );
+    } finally {
+      setLoadingId(null);
+    }
   };
 
-  const handleCancel = () => setConfirmModal({ open: false, articleId: null, price: 0 });
+  const handleCancel = () =>
+    setConfirmModal({ open: false, articleId: null, price: 0 });
 
   return (
     <section className="max-w-7xl mx-auto py-16 px-6">
-       <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-10">
         <h1 className="text-4xl font-bold mb-8 text-foreground">
           📰 Мэдээ мэдээлэл
         </h1>
@@ -67,43 +85,61 @@ export default function ResearchArticles() {
 
       {isLoading ? (
         <p>⏳ Уншиж байна...</p>
+      ) : articlesError ? (
+        <p className="text-red-500">
+          Алдаа гарлаа: Нийтлэлүүдийг ачаалж чадсангүй.
+        </p>
+      ) : articles.length === 0 ? (
+        <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-         {articles?.map((item, idx) => {
-  const isUnlocked = unlockedArticles?.includes(item.id);
-  return (
-    <motion.div
-      key={item.id + '-' + idx} 
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
-    >
+          {articles?.map((item, idx) => {
+            const isUnlocked = unlockedArticles?.includes(item._id);
+            return (
+              <motion.div
+                key={item._id + "-" + idx}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
+              >
                 <div className="relative h-64 w-full">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                  <img
+                    src={item.image.url}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
                     18+
                   </span>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-2xl font-bold text-foreground line-clamp-2">{item.title}</h3>
-                  <p className="text-foreground/70 mt-3 line-clamp-3">{item.preview}</p>
+                  <h3 className="text-2xl font-bold text-foreground line-clamp-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-foreground/70 mt-3 line-clamp-3">
+                    {item.description}
+                  </p>
 
                   {isUnlocked ? (
                     <Link
-                      href={`/articles/${item.id}`}
+                      href={`/articles/${item._id}`}
                       className="mt-6 block text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
                       🔓 Агуулга нээгдсэн - Үзэх
                     </Link>
                   ) : (
                     <button
-                      onClick={() => openConfirmModal(item.id, item.articleToken || 0)}
-                      disabled={loadingId === item.id}
+                      onClick={() =>
+                        openConfirmModal(item._id, item.articleToken)
+                      }
+                      disabled={loadingId === item._id}
                       className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
                       <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.articleToken} токен)`}
+                      {loadingId === item._id
+                        ? "Нээж байна..."
+                        : `Нээх (${item.articleToken} токен)`}
                     </button>
                   )}
                 </div>
@@ -128,13 +164,19 @@ export default function ResearchArticles() {
               exit={{ scale: 0.8, opacity: 0 }}
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Токенээр нээх</h3>
-                <button onClick={handleCancel} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  Токенээр нээх
+                </h3>
+                <button
+                  onClick={handleCancel}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300 text-base">
-                Та <span className="font-semibold">{confirmModal.price}</span> токен зарцуулж, энэ нийтлэлийг үзэх гэж байна.
+                Та <span className="font-semibold">{confirmModal.price}</span>{" "}
+                токен зарцуулж, энэ нийтлэлийг үзэх гэж байна.
               </p>
               <div className="flex justify-end gap-4">
                 <button

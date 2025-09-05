@@ -12,3 +12,13 @@ export const getSurvey = async (id: string) => {
   const res= await appHttpRequest.get(`/${id}`);
   return res;
 }
+
+export const purchaseSurvey = async (surveyId: string) => {
+  const res = await appHttpRequest.post("/purchase", { surveyId });
+  return res; 
+};
+
+export const getUserSubmissions = async ({ page }: { page: number }) => {
+  const res = await appHttpRequest.get("/submissions", { page });
+  return res;
+}

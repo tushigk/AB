@@ -9,13 +9,26 @@ export interface Video {
   description?: string;
 }
 
-export interface TextContent {
-  id: number;
+export interface Article {
+  _id: string;
   title: string;
-  preview: string;
-  image: string;
-  fullText?: string;
-  articleToken?: number;
+  description: string;
+  image: {
+    _id: string;
+    url: string;
+    createdAt: string;
+    __v: number;
+  };
+  articleToken: number;
+  category: string;
+  createUser: string;
+  subscriptionViews: number;
+  purchasedViews: number;
+  revenue: number;
+  watchedList: string[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 export interface QuizQuestion {
@@ -48,6 +61,7 @@ export interface QuizType {
   subscriptionSubmissions: number;
   purchasedSubmissions: number;
   revenue: number;
+  isPurchased?: boolean;
 }
 
 export const days: string[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];

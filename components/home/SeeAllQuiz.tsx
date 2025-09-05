@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QuizType } from "@/components/home/types";
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import useSWR from "swr";
 import { authApi } from "@/apis";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getSurveys } from "@/apis/survey";
+import { getSurveys, purchaseSurvey } from "@/apis/survey";
 
 export default function SeeAllQuizPage() {
-  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>([]);
+  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>(() => {
+    // Initialize from localStorage
+    return JSON.parse(localStorage.getItem("unlockedQuizzes") || "[]");
+  });
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
@@ -31,7 +34,7 @@ export default function SeeAllQuizPage() {
   const quizzes: QuizType[] = Array.isArray(quizzesRes)
     ? quizzesRes.map((quiz: any) => ({
         ...quiz,
-        id: quiz._id, 
+        id: quiz._id,
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : Array.isArray(quizzesRes?.data)
@@ -41,6 +44,10 @@ export default function SeeAllQuizPage() {
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : [];
+
+  useEffect(() => {
+    localStorage.setItem("unlockedQuizzes", JSON.stringify(unlockedQuizzes));
+  }, [unlockedQuizzes]);
 
   const openConfirmModal = (quizId: string, price: number) => {
     if (tokens < price) {
@@ -60,11 +67,21 @@ export default function SeeAllQuizPage() {
     setConfirmModal({ ...confirmModal, open: false });
 
     try {
-      setUnlockedQuizzes((prev) => [...prev, id]);
-      const newUser = { ...user, tokens: tokens - price };
-      mutate(newUser, false);
-    } catch (err) {
+      const response = await purchaseSurvey(id);
+      if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
+        setUnlockedQuizzes((prev) => [...prev, id]);
+        const newUser = { ...user, tokens: tokens - price };
+        mutate(newUser, { revalidate: true });
+      } else {
+        throw new Error("Purchase failed");
+      }
+    } catch (err: any) {
       console.error("Unlock Error:", err);
+      alert(
+        err.message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
+          ? "Энэ тест аль хэдийн нээгдсэн байна."
+          : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
+      );
     } finally {
       setLoadingId(null);
     }
@@ -75,99 +92,85 @@ export default function SeeAllQuizPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
-      <div className="max-w-full mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-heading font-bold">Бүх тестүүд</h1>
-          <Link href="/" className="text-primary hover:underline font-medium">
-            Буцах →
-          </Link>
-        </div>
-
-        {isLoading ? (
-          <p>⏳ Уншиж байна...</p>
-        ) : quizzesError ? (
-          <p className="text-red-500">Алдаа гарлаа: Тестүүдийг ачаалж чадсангүй.</p>
-        ) : quizzes.length === 0 ? (
-          <p>Тестүүд олдсонгүй</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {quizzes.map((quiz, idx) => {
-              const isUnlocked = unlockedQuizzes.includes(quiz._id); 
-
-              return (
-                <motion.div
-                  key={`${quiz._id}-${idx}`}
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="relative rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition duration-500 group bg-gradient-to-br from-gray-800 via-gray-900 to-black"
-                >
-                  <div className="relative h-64 w-full">
-                    <img
-                      src={quiz.image}
-                      alt={quiz.title}
-                      className="w-full h-full object-cover"
-                      // onError={(e) => {
-                      //   e.currentTarget.src = "/images/fallback.png"; // Fallback on error
-                      // }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    <div className="absolute top-4 right-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10">
-                      Тест
-                    </div>
-                  </div>
-
-                  <div className="p-6 relative z-10">
-                    <h3 className="text-2xl text-white font-bold mb-2 group-hover:text-indigo-400 transition duration-300">
-                      {quiz.title}
-                    </h3>
-                    <p className="text-gray-300 text-sm line-clamp-3 mb-4">
-                      {quiz.description}
-                    </p>
-
-                    {isUnlocked ? (
-                      <Link
-                        href={`/quizzes/${quiz._id}`} // Use _id for routing
-                        className="mt-4 flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
-                      >
-                        🔓 Тест нээгдсэн - Үзэх
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
-                        disabled={loadingId === quiz._id}
-                        className="mt-2 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
-                      >
-                        <LockClosedIcon className="w-5 h-5" />
-                        {loadingId === quiz._id ? "Нээж байна..." : `Нээх (${quiz.surveyToken} токен)`}
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {quizzes.length > 0 && (
-          <div className="mt-8 flex justify-center gap-4">
-            <button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-50"
-            >
-              Өмнөх
-            </button>
-            <button
-              onClick={() => setPage((prev) => prev + 1)}
-              disabled={quizzes.length < 6} 
-              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-50"
-            >
-              Дараах
-            </button>
-          </div>
-        )}
+    <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-heading font-bold text-foreground">
+          Бүх тестүүд 🤔
+        </h2>
+        <Link
+          href="/"
+          className="text-primary hover:underline font-medium"
+        >
+          Буцах →
+        </Link>
       </div>
+
+      {isLoading ? (
+        <p>⏳ Уншиж байна...</p>
+      ) : quizzesError ? (
+        <p className="text-red-500">
+          Алдаа гарлаа: Тестүүдийг ачаалж чадсангүй.
+        </p>
+      ) : quizzes.length === 0 ? (
+        <p>Тестүүд олдсонгүй</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          {quizzes.map((quiz, idx) => {
+            const isUnlocked = unlockedQuizzes.includes(quiz._id);
+
+            return (
+              <motion.div
+                key={`${quiz._id}-${idx}`}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
+              >
+                <div className="relative h-40 w-full">
+                  <img
+                    src={quiz.image}
+                    alt={quiz.title}
+                    className="w-full h-full object-cover rounded-t-lg"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                  <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
+                    18+
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-2">
+                    {quiz.title}
+                  </h3>
+                  <p className="text-sm text-foreground/70 mt-2 line-clamp-2">
+                    {quiz.description}
+                  </p>
+
+                  {isUnlocked ? (
+                    <Link
+                      href={`/quizzes/${quiz._id}`}
+                      className="mt-4 block w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-2 rounded-lg shadow-md"
+                    >
+                      🔓 Нээгдсэн - Үзэх
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        openConfirmModal(quiz._id, quiz.surveyToken)
+                      }
+                      disabled={loadingId === quiz._id}
+                      className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
+                    >
+                      <LockClosedIcon className="w-5 h-5" />
+                      {loadingId === quiz._id
+                        ? "Нээж байна..."
+                        : `Нээх (${quiz.surveyToken} токен)`}
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       <AnimatePresence>
         {confirmModal.open && (
@@ -216,6 +219,6 @@ export default function SeeAllQuizPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }

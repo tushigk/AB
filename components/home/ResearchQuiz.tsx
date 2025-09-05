@@ -2,16 +2,18 @@
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { QuizType } from "./types";
 import { authApi } from "@/apis";
 import { motion, AnimatePresence } from "framer-motion";
-import { getSurveys } from "@/apis/survey";
+import { getSurveys, purchaseSurvey } from "@/apis/survey";
 
 export default function PsychologicalQuiz() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>([]);
+  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>(() => {
+    return JSON.parse(localStorage.getItem("unlockedQuizzes") || "[]");
+  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     quizId: string | null;
@@ -19,19 +21,20 @@ export default function PsychologicalQuiz() {
   }>({ open: false, quizId: null, price: 0 });
   const [page, setPage] = useState<number>(1);
 
-  const fetchUser = async () => await authApi.me();
+   const fetchUser = async () => await authApi.me();
   const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
-  const tokens = user?.tokens || 0;
+  const tokens = user?.tokens;
 
-  const { data: quizzesRes, isLoading, error: quizzesError } = useSWR(
-    `quizzes.${page}`,
-    () => getSurveys({ page })
-  );
+  const {
+    data: quizzesRes,
+    isLoading,
+    error: quizzesError,
+  } = useSWR(`quizzes.${page}`, () => getSurveys({ page }));
 
   const quizTypes: QuizType[] = Array.isArray(quizzesRes)
     ? quizzesRes.map((quiz: any) => ({
         ...quiz,
-        id: quiz._id, 
+        id: quiz._id,
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : Array.isArray(quizzesRes?.data)
@@ -41,6 +44,10 @@ export default function PsychologicalQuiz() {
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : [];
+
+  useEffect(() => {
+    localStorage.setItem("unlockedQuizzes", JSON.stringify(unlockedQuizzes));
+  }, [unlockedQuizzes]);
 
   const openConfirmModal = (quizId: string, price: number) => {
     if (tokens < price) {
@@ -60,11 +67,21 @@ export default function PsychologicalQuiz() {
     setConfirmModal({ ...confirmModal, open: false });
 
     try {
-      setUnlockedQuizzes((prev) => [...prev, id]);
-      const newUser = { ...user, tokens: tokens - price };
-      mutate(newUser, false);
-    } catch (err) {
+      const response = await purchaseSurvey(id);
+      if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
+        setUnlockedQuizzes((prev) => [...prev, id]);
+        const newUser = { ...user, tokens: tokens - price };
+        mutate(newUser, { revalidate: true });
+      } else {
+        throw new Error("Purchase failed");
+      }
+    } catch (err: any) {
       console.error("Unlock Error:", err);
+      alert(
+        err.message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
+          ? "Энэ тест аль хэдийн нээгдсэн байна."
+          : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
+      );
     } finally {
       setLoadingId(null);
     }
@@ -91,7 +108,9 @@ export default function PsychologicalQuiz() {
       {isLoading ? (
         <p>⏳ Уншиж байна...</p>
       ) : quizzesError ? (
-        <p className="text-red-500">Алдаа гарлаа: Тестүүдийг ачаалж чадсангүй.</p>
+        <p className="text-red-500">
+          Алдаа гарлаа: Тестүүдийг ачаалж чадсангүй.
+        </p>
       ) : quizTypes.length === 0 ? (
         <p>Тестүүд олдсонгүй</p>
       ) : (
@@ -137,12 +156,16 @@ export default function PsychologicalQuiz() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
+                      onClick={() =>
+                        openConfirmModal(quiz._id, quiz.surveyToken)
+                      }
                       disabled={loadingId === quiz._id}
                       className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     >
                       <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === quiz._id ? "Нээж байна..." : `Нээх (${quiz.surveyToken} токен)`}
+                      {loadingId === quiz._id
+                        ? "Нээж байна..."
+                        : `Нээх (${quiz.surveyToken} токен)`}
                     </button>
                   )}
                 </div>

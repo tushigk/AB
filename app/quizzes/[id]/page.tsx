@@ -91,9 +91,9 @@ export default function QuizByIdPage() {
         className="w-full h-80 md:h-96 object-cover rounded-2xl mb-8 shadow-lg border-4 border-purple-500/30"
         whileHover={{ scale: 1.03 }}
         transition={{ type: "spring", stiffness: 200 }}
-        onError={(e) => {
-          e.currentTarget.src = "/images/fallback.png";
-        }}
+        // onError={(e) => {
+        //   e.currentTarget.src = "/images/fallback.png";
+        // }}
       />
 
       {completed ? (

@@ -1,52 +1,94 @@
 "use client";
 
-import { notFound } from "next/navigation";
-import { TextContent } from "@/components/home/types";
+import { useState } from "react";
+import { useParams, notFound } from "next/navigation";
 import useSWR from "swr";
-import { getArticle } from "@/apis/article";
+import { motion } from "framer-motion";
+import { getArticleById } from "@/apis/article";
+import { Article } from "@/components/home/types";
 
-interface Props {
-  params: { id: string };
-}
+export default function ArticlePageClient() {
+  const params = useParams();
+  const articleId = params.id as string;
 
-export default function ArticlePageClient({ params }: Props) {
-  const { data: res, error, isLoading } = useSWR(
-    params.id ? `article.${params.id}` : null,
-    () => getArticle(params.id)
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: articleRes, isLoading, error: swrError } = useSWR(
+    `article.${articleId}`,
+    () => getArticleById(articleId)
   );
+
+  const article: Article | null = articleRes
+    ? {
+        ...articleRes,
+        id: articleRes._id,
+        image: articleRes.image
+          ? articleRes.image.url
+          : "/images/fallback.png",
+      }
+    : null;
+
+  if (swrError) {
+    setError("Нийтлэл ачааллахад алдаа гарлаа.");
+    notFound();
+  }
+
+  if (!isLoading && !article && !swrError) {
+    setError("Нийтлэл олдсонгүй.");
+    notFound();
+  }
 
   if (isLoading) {
     return <p className="text-center mt-12 text-gray-400">⏳ Ачааллаж байна...</p>;
   }
 
-  if (error || !res?.data) {
-    return notFound();
+  if (error || !article) {
+    return (
+      <p className="text-center mt-12 text-red-500">{error || "Нийтлэл олдсонгүй."}</p>
+    );
   }
 
-  const article: TextContent = res.data;
-
   return (
-    <article className="min-h-screen bg-background text-foreground font-sans px-6 py-12 max-w-4xl mx-auto">
-      <h1 className="text-4xl md:text-5xl font-extrabold mb-4">{article.title}</h1>
-      <p className="text-lg text-gray-400 mb-8">{article.preview}</p>
+    <div className="max-w-3xl md:max-w-5xl mx-auto py-12 px-6">
+      <motion.h1
+        className="text-4xl md:text-5xl font-extrabold mb-6 bg-clip-text bg-gradient-to-r text-secondary animate-gradient-x"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {article.title}
+      </motion.h1>
 
       {article.image && (
-        <div className="mb-8">
-          <img
-            src={article.image}
-            alt={article.title}
-            className="w-full rounded-xl object-cover shadow-lg"
-          />
-        </div>
+        <motion.img
+          src={article.image.url}
+          alt={article.title}
+          className="w-full h-80 md:h-96 object-cover rounded-2xl mb-8 shadow-lg border-4 border-purple-500/30"
+          whileHover={{ scale: 1.03 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          // onError={(e) => {
+          //   e.currentTarget.src = "/images/fallback.png";
+          // }}
+        />
       )}
 
-      {article.fullText ? (
-        <div className="prose prose-lg prose-invert max-w-full leading-relaxed">
-          <p>{article.fullText}</p>
-        </div>
-      ) : (
-        <p className="text-gray-500 italic">Агуулга одоогоор байхгүй байна.</p>
-      )}
-    </article>
+      <motion.div
+        className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-2xl"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <p className="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-4">
+          {article.category}
+        </p>
+        {article.description ? (
+          <div className="prose prose-lg prose-invert max-w-full leading-relaxed text-gray-800 dark:text-gray-200">
+            <div dangerouslySetInnerHTML={{ __html: article.description }} />
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">Агуулга одоогоор байхгүй байна.</p>
+        )}
+      </motion.div>
+    </div>
   );
 }

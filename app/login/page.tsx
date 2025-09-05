@@ -1,6 +1,7 @@
 "use client";
 import { authApi } from "@/apis";
 import { ILoginForm, LoginForm } from "@/components/form/login";
+import { authMe } from "@/store/auth-slice";
 import { handleApiError } from "@/utils/handle-api-error";
 import { message } from "@/utils/toast";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import useSWR, { mutate } from "swr";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const {
@@ -23,23 +25,19 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (data: ILoginForm) => {
-    setLoading(true);
-    try {
-      const res = await authApi.login(data);
-
-      await mutate("userMe", async () => {
-        return await authApi.me(); 
-      }, false);
-
-      message.success("Амжилттай нэвтэрлээ.");
-      router.push("/"); 
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const onSubmit = handleSubmit(async (data) => {
+  try {
+    await authApi.login(data);      
+    const user = await authApi.me();
+    authMe(user);
+    mutate("userMe", user, { revalidate: true });
+    message.success("Амжилттай нэвтэрлээ");
+    router.push("/"); 
+    console.log("Logged in user:", user);
+  } catch (err: any) {
+    setError("username");
+  }
+});
 
   return (
     <div className="h-screen w-screen flex bg-[#1a1a25] text-white">
@@ -58,7 +56,7 @@ export default function LoginPage() {
           </p>
 
           <LoginForm
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={onSubmit}
             control={control}
             errors={errors}
             loading={loading}
