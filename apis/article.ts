@@ -12,5 +12,10 @@ export const getCategories = async () => {
   const res = await appHttpRequest.get("-categories");
   return res;
 }
+export const getArticle = async (id: string) => {
+  const res= await appHttpRequest.get(`/${id}`);
+  return res;
+}
+
 
 

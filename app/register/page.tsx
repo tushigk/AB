@@ -5,10 +5,12 @@ import { message } from "@/utils/toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { mutate } from "swr";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
   const {
     handleSubmit,
     formState: { errors },
@@ -22,26 +24,31 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (data: IRegisterForm) => {
+    setLoading(true);
     try {
       await authApi.register(data);
-      await authApi.me();
+
+      await mutate("userMe", async () => {
+        return await authApi.me();
+      }, false);
+
       message.success("Амжилттай бүртгэгдлээ.");
       router.push("/");
-    }  catch (err: unknown) {
-  if (err instanceof Error) {
-    message.error(err.message);
-  } else if (typeof err === "object" && err && "error" in err) {
-    message.error((err as { error?: { message?: string } }).error?.message || "Алдаа гарлаа");
-  } else {
-    message.error("Алдаа гарлаа");
-  }
-}
-
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        message.error(err.message);
+      } else if (typeof err === "object" && err && "error" in err) {
+        message.error((err as { error?: { message?: string } }).error?.message || "Алдаа гарлаа");
+      } else {
+        message.error("Алдаа гарлаа");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="h-screen w-screen flex bg-[#1a1a25] text-white">
-
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-primary to-secondary items-center justify-center">
         <h2 className="text-4xl font-bold">Бидэнтэй нэгдээрэй!</h2>
       </div>

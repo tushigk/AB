@@ -6,37 +6,43 @@ import { message } from "@/utils/toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import useSWR, { mutate } from "swr";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
   const {
     handleSubmit,
     formState: { errors },
     control,
   } = useForm<ILoginForm>({
     defaultValues: {
-      username: "noskr",
-      password: "0401",
+      username: "tushig",
+      password: "Tushig123",
     },
   });
 
   const onSubmit = async (data: ILoginForm) => {
-  setLoading(true);
-  try {
-    await authApi.login(data);
-    message.success("Амжилттай нэвтэрлээ.");
-    router.push("/");
-  } catch (err) {
-    handleApiError(err);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const res = await authApi.login(data);
+
+      await mutate("userMe", async () => {
+        return await authApi.me(); 
+      }, false);
+
+      message.success("Амжилттай нэвтэрлээ.");
+      router.push("/"); 
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="h-screen w-screen flex bg-[#1a1a25] text-white">
-
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-primary to-secondary items-center justify-center">
         <h2 className="text-4xl font-bold">Тавтай морил!</h2>
       </div>

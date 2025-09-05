@@ -33,12 +33,12 @@ export interface QuizResult {
 }
 
 export interface QuizType {
-  id?: string; // Optional for mapping compatibility
-  _id: string; // Matches backend
+  id?: string;
+  _id: string; 
   title: string;
   description: string;
   questions: QuizQuestion[];
-  image: string; // Will be resolved to a URL
+  image: string; 
   surveyToken: number;
   results: QuizResult[];
   createdBy: string;

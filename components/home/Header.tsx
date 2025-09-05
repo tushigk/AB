@@ -9,7 +9,6 @@ import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { authApi } from "@/apis";
-import { IUser } from "@/models/user";
 import { logout } from "@/store/auth-slice";
 import { message } from "antd";
 import { useDispatch } from "react-redux";
@@ -20,22 +19,19 @@ interface HeaderProps {
   toggleSidebar: () => void;
 }
 
-const fetcher = async () => {
-  const res = await authApi.me();
-  return res;
-};
-
 export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { data: user, error } = useSWR<IUser | null>("me", fetcher);
+  const fetchUser = async () => await authApi.me();
+  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
 
   const handleLogout = async () => {
     try {
       dispatch(logout());
       router.push("/");
+      await mutate(null, false);
     } catch (err) {
       message.error("Алдаа гарлаа");
     }
