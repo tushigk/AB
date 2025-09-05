@@ -98,12 +98,12 @@ export default function ResearchArticles() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => openConfirmModal(item.id, item.price)}
+                      onClick={() => openConfirmModal(item.id, item.articleToken || 0)}
                       disabled={loadingId === item.id}
                       className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
                       <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.price} токен)`}
+                      {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.articleToken} токен)`}
                     </button>
                   )}
                 </div>

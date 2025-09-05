@@ -9,7 +9,6 @@ import ResearchArticles from '@/components/home/ResearchArticles';
 import PsychologicalQuiz from '@/components/home/ResearchQuiz';
 import SubscriptionCTA from '@/components/home/Subscription';
 import VideoGrid from '@/components/home/VideoGrid';
-import { textContent, quizTypes, Video } from '../components/home/types';
 import { IDrama } from '@/models/drama';
 import { dramaApi } from '@/apis';
 
@@ -47,7 +46,7 @@ export default function Home() {
       <ReleaseCalendar />
       <VideoGrid videos={videos} />
       <ResearchArticles />
-      <PsychologicalQuiz quizTypes={quizTypes} />
+      <PsychologicalQuiz />
       <SubscriptionCTA />
       <Footer />
     </div>

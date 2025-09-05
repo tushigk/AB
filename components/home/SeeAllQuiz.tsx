@@ -7,30 +7,42 @@ import useSWR from "swr";
 import { authApi } from "@/apis";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { getSurveys } from "@/apis/survey";
 
-interface SeeAllQuizProps {
-  quizzes: QuizType[];
-}
-
-export default function SeeAllQuizPage({ quizzes }: SeeAllQuizProps) {
-  const [unlockedQuizzes, setUnlockedQuizzes] = useState<number[]>([]);
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+export default function SeeAllQuizPage() {
+  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>([]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
-    quizId: number | null;
+    quizId: string | null;
     price: number;
   }>({ open: false, quizId: null, price: 0 });
+  const [page, setPage] = useState<number>(1);
 
-  const fetchUser = async () => {
-    const res = await authApi.me();
-    return res;
-  };
-  const { data: user, mutate } = useSWR("userMe", fetchUser);
+  const fetchUser = async () => await authApi.me();
+  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
 
-  if (!quizzes || quizzes.length === 0) return <p>Тестүүд олдсонгүй</p>;
+  const { data: quizzesRes, isLoading, error: quizzesError } = useSWR(
+    `quizzes.${page}`,
+    () => getSurveys({ page })
+  );
 
-  const openConfirmModal = (quizId: number, price: number) => {
+  const quizzes: QuizType[] = Array.isArray(quizzesRes)
+    ? quizzesRes.map((quiz: any) => ({
+        ...quiz,
+        id: quiz._id, 
+        image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
+      }))
+    : Array.isArray(quizzesRes?.data)
+    ? quizzesRes.data.map((quiz: any) => ({
+        ...quiz,
+        id: quiz._id,
+        image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
+      }))
+    : [];
+
+  const openConfirmModal = (quizId: string, price: number) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
       return;
@@ -52,7 +64,7 @@ export default function SeeAllQuizPage({ quizzes }: SeeAllQuizProps) {
       const newUser = { ...user, tokens: tokens - price };
       mutate(newUser, false);
     } catch (err) {
-      console.error(err);
+      console.error("Unlock Error:", err);
     } finally {
       setLoadingId(null);
     }
@@ -72,58 +84,91 @@ export default function SeeAllQuizPage({ quizzes }: SeeAllQuizProps) {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-          {quizzes.map((quiz) => {
-            const isUnlocked = unlockedQuizzes.includes(quiz.id);
+        {isLoading ? (
+          <p>⏳ Уншиж байна...</p>
+        ) : quizzesError ? (
+          <p className="text-red-500">Алдаа гарлаа: Тестүүдийг ачаалж чадсангүй.</p>
+        ) : quizzes.length === 0 ? (
+          <p>Тестүүд олдсонгүй</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {quizzes.map((quiz, idx) => {
+              const isUnlocked = unlockedQuizzes.includes(quiz._id); 
 
-            return (
-              <div
-                key={quiz.id}
-                className="relative rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition duration-500 group bg-gradient-to-br from-gray-800 via-gray-900 to-black"
-              >
-                <img
-                  src={quiz.image}
-                  alt={quiz.title}
-                  className="w-full h-64 object-cover"
-                />
+              return (
+                <motion.div
+                  key={`${quiz._id}-${idx}`}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition duration-500 group bg-gradient-to-br from-gray-800 via-gray-900 to-black"
+                >
+                  <div className="relative h-64 w-full">
+                    <img
+                      src={quiz.image}
+                      alt={quiz.title}
+                      className="w-full h-full object-cover"
+                      // onError={(e) => {
+                      //   e.currentTarget.src = "/images/fallback.png"; // Fallback on error
+                      // }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute top-4 right-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10">
+                      Тест
+                    </div>
+                  </div>
 
-                <div className="p-6 relative z-10">
-                  <h3 className="text-2xl text-white font-bold mb-2 group-hover:text-indigo-400 transition duration-300">
-                    {quiz.title}
-                  </h3>
-                  <p className="text-gray-300 text-sm line-clamp-3 mb-4">
-                    {quiz.description}
-                  </p>
+                  <div className="p-6 relative z-10">
+                    <h3 className="text-2xl text-white font-bold mb-2 group-hover:text-indigo-400 transition duration-300">
+                      {quiz.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm line-clamp-3 mb-4">
+                      {quiz.description}
+                    </p>
 
-                  {isUnlocked ? (
-                    <Link
-                      href={`/quizzes/${quiz.id}`}
-                      className="mt-4 flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
-                    >
-                      🔓 Тест нээгдсэн - Үзэх
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => openConfirmModal(quiz.id, quiz.price)}
-                      disabled={loadingId === quiz.id}
-                      className="mt-2 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
-                    >
-                      <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === quiz.id ? "Нээж байна..." : `Нээх (${quiz.price} токен)`}
-                    </button>
-                  )}
-                </div>
+                    {isUnlocked ? (
+                      <Link
+                        href={`/quizzes/${quiz._id}`} // Use _id for routing
+                        className="mt-4 flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
+                      >
+                        🔓 Тест нээгдсэн - Үзэх
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
+                        disabled={loadingId === quiz._id}
+                        className="mt-2 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
+                      >
+                        <LockClosedIcon className="w-5 h-5" />
+                        {loadingId === quiz._id ? "Нээж байна..." : `Нээх (${quiz.surveyToken} токен)`}
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
-                <div className="absolute top-4 right-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10">
-                  Тест
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {quizzes.length > 0 && (
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-50"
+            >
+              Өмнөх
+            </button>
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={quizzes.length < 6} 
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-50"
+            >
+              Дараах
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Confirm Modal */}
       <AnimatePresence>
         {confirmModal.open && (
           <motion.div

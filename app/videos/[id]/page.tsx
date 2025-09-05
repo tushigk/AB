@@ -27,7 +27,7 @@ export default function VideoDetailPage() {
     thumbnail: data.image?.url || "/placeholder.jpg",
     episodes: data.totalEpisodes,
     freeEpisodes: Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),
-    episodePrices: data.episodePrices || {}, 
+    episodeToken: data.episodeToken || {}, 
   };
 
   return (

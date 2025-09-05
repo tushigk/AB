@@ -3,7 +3,7 @@
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import useSWR from "swr";
-import { textContent, TextContent } from "@/components/home/types";
+import { TextContent } from "@/components/home/types";
 import { authApi } from "@/apis";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,7 +35,7 @@ export default function ArticlesPage() {
     () => getArticles({ page, search: selectedCategory === "all" ? "" : selectedCategory })
   );
 
-  const articles: TextContent[] = articlesRes?.data || textContent;
+  const articles: TextContent[] = articlesRes?.data;
 
   const openConfirmModal = (articleId: number, price: number) => {
     if (tokens < price) {
@@ -133,12 +133,12 @@ export default function ArticlesPage() {
                       </Link>
                     ) : (
                       <button
-                        onClick={() => openConfirmModal(item.id, item.price)}
+                        onClick={() => openConfirmModal(item.id, item.articleToken || 0)}
                         disabled={loadingId === item.id}
                         className="mt-4 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-pink-500 hover:to-indigo-500 transition text-white font-semibold py-3 rounded-lg shadow-lg transform hover:scale-105"
                       >
                         <LockClosedIcon className="w-5 h-5" />
-                        {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.price} токен)`}
+                        {loadingId === item.id ? "Нээж байна..." : `Нээх (${item.articleToken} токен)`}
                       </button>
                     )}
                   </div>
