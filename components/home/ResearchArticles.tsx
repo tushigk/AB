@@ -1,7 +1,7 @@
 "use client";
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { authApi } from "@/apis";
 import Link from "next/link";
@@ -11,7 +11,9 @@ import { Article } from "./types";
 
 export default function ResearchArticles() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedArticles, setUnlockedArticles] = useState<string[]>([]); 
+  const [unlockedArticles, setUnlockedArticles] = useState<string[]>(() => {
+    return JSON.parse(localStorage.getItem("unlockedArticles") || "[]");
+  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     articleId: string | null;
@@ -27,6 +29,10 @@ export default function ResearchArticles() {
     getArticles({ page })
   );
   const articles: Article[] = articlesRes?.data || [];
+
+  useEffect(() => {
+    localStorage.setItem("unlockedArticles", JSON.stringify(unlockedArticles));
+  }, [unlockedArticles]);
 
   const openConfirmModal = (articleId: string, price: number) => {
     if (tokens < price) {
@@ -107,6 +113,9 @@ export default function ResearchArticles() {
                     src={item.image.url}
                     alt={item.title}
                     className="w-full h-full object-cover"
+                    // onError={(e) => {
+                    //   e.currentTarget.src = "/images/fallback.png";
+                    // }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">

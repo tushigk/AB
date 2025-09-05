@@ -1,7 +1,7 @@
 "use client";
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { authApi, categoryApi } from "@/apis";
 import Link from "next/link";
@@ -12,7 +12,9 @@ import { ICategory } from "@/models/category";
 
 export default function ArticlesPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedArticles, setUnlockedArticles] = useState<string[]>([]); 
+  const [unlockedArticles, setUnlockedArticles] = useState<string[]>(() => {
+    return JSON.parse(localStorage?.getItem("unlockedArticles") || "[]");
+  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     articleId: string | null;
@@ -26,7 +28,7 @@ export default function ArticlesPage() {
   const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
 
-  const { data: categoryRes } = useSWR<
+   const { data: categoryRes } = useSWR<
     { categories: ICategory[]; total: number; totalPages: number; currentPage: number }
   >(
     `swr.article.category.list`,
@@ -39,6 +41,10 @@ export default function ArticlesPage() {
     () => getArticles({ page, search: selectedCategory === "all" ? "" : selectedCategory })
   );
   const articles: Article[] = articlesRes?.data || [];
+
+  useEffect(() => {
+    localStorage.setItem("unlockedArticles", JSON.stringify(unlockedArticles));
+  }, [unlockedArticles]);
 
   const openConfirmModal = (articleId: string, price: number) => {
     if (tokens < price) {
@@ -146,6 +152,9 @@ export default function ArticlesPage() {
                     src={item.image?.url}
                     alt={item.title}
                     className="w-full h-full object-cover"
+                    // onError={(e) => {
+                    //   e.currentTarget.src = "/images/fallback.png";
+                    // }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
