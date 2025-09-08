@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { QuizType } from "@/components/home/types";
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import useSWR from "swr";
@@ -10,10 +10,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getSurveys, purchaseSurvey } from "@/apis/survey";
 
 export default function SeeAllQuizPage() {
-  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>(() => {
-    // Initialize from localStorage
-    return JSON.parse(localStorage.getItem("unlockedQuizzes") || "[]");
-  });
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
@@ -25,29 +21,20 @@ export default function SeeAllQuizPage() {
   const fetchUser = async () => await authApi.me();
   const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
+  const purchasedQuizzes = user?.purchasedSurveys || [];
 
   const { data: quizzesRes, isLoading, error: quizzesError } = useSWR(
     `quizzes.${page}`,
     () => getSurveys({ page })
   );
 
-  const quizzes: QuizType[] = Array.isArray(quizzesRes)
-    ? quizzesRes.map((quiz: any) => ({
-        ...quiz,
-        id: quiz._id,
-        image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
-      }))
-    : Array.isArray(quizzesRes?.data)
+  const quizzes: QuizType[] = Array.isArray(quizzesRes?.data)
     ? quizzesRes.data.map((quiz: any) => ({
         ...quiz,
         id: quiz._id,
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : [];
-
-  useEffect(() => {
-    localStorage.setItem("unlockedQuizzes", JSON.stringify(unlockedQuizzes));
-  }, [unlockedQuizzes]);
 
   const openConfirmModal = (quizId: string, price: number) => {
     if (tokens < price) {
@@ -69,11 +56,9 @@ export default function SeeAllQuizPage() {
     try {
       const response = await purchaseSurvey(id);
       if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
-        setUnlockedQuizzes((prev) => [...prev, id]);
-        const newUser = { ...user, tokens: tokens - price };
-        mutate(newUser, { revalidate: true });
+        await mutate(); // refresh user info
       } else {
-        throw new Error("Purchase failed");
+        throw new Error(response.message || "Purchase failed");
       }
     } catch (err: any) {
       console.error("Unlock Error:", err);
@@ -87,9 +72,7 @@ export default function SeeAllQuizPage() {
     }
   };
 
-  const handleCancel = () => {
-    setConfirmModal({ open: false, quizId: null, price: 0 });
-  };
+  const handleCancel = () => setConfirmModal({ open: false, quizId: null, price: 0 });
 
   return (
     <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
@@ -97,10 +80,7 @@ export default function SeeAllQuizPage() {
         <h2 className="text-3xl font-heading font-bold text-foreground">
           Бүх тестүүд 🤔
         </h2>
-        <Link
-          href="/"
-          className="text-primary hover:underline font-medium"
-        >
+        <Link href="/" className="text-primary hover:underline font-medium">
           Буцах →
         </Link>
       </div>
@@ -116,7 +96,7 @@ export default function SeeAllQuizPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {quizzes.map((quiz, idx) => {
-            const isUnlocked = unlockedQuizzes.includes(quiz._id);
+            const isUnlocked = purchasedQuizzes.includes(quiz._id);
 
             return (
               <motion.div
@@ -153,9 +133,7 @@ export default function SeeAllQuizPage() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() =>
-                        openConfirmModal(quiz._id, quiz.surveyToken)
-                      }
+                      onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
                       disabled={loadingId === quiz._id}
                       className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     >

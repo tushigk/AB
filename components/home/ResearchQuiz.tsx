@@ -2,7 +2,7 @@
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { QuizType } from "./types";
 import { authApi } from "@/apis";
@@ -11,9 +11,6 @@ import { getSurveys, purchaseSurvey } from "@/apis/survey";
 
 export default function PsychologicalQuiz() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedQuizzes, setUnlockedQuizzes] = useState<string[]>(() => {
-    return JSON.parse(localStorage.getItem("unlockedQuizzes") || "[]");
-  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     quizId: string | null;
@@ -21,33 +18,25 @@ export default function PsychologicalQuiz() {
   }>({ open: false, quizId: null, price: 0 });
   const [page, setPage] = useState<number>(1);
 
-   const fetchUser = async () => await authApi.me();
+  // fetch user info
+  const fetchUser = async () => await authApi.me();
   const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
-  const tokens = user?.tokens;
+  const tokens = user?.tokens || 0;
+  const purchasedQuizzes = user?.purchasedSurveys || []; // get purchased quizzes from backend
 
-  const {
-    data: quizzesRes,
-    isLoading,
-    error: quizzesError,
-  } = useSWR(`quizzes.${page}`, () => getSurveys({ page }));
+  // fetch quizzes
+  const { data: quizzesRes, isLoading, error: quizzesError } = useSWR(
+    `quizzes.${page}`,
+    () => getSurveys({ page })
+  );
 
-  const quizTypes: QuizType[] = Array.isArray(quizzesRes)
-    ? quizzesRes.map((quiz: any) => ({
-        ...quiz,
-        id: quiz._id,
-        image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
-      }))
-    : Array.isArray(quizzesRes?.data)
+  const quizTypes: QuizType[] = Array.isArray(quizzesRes?.data)
     ? quizzesRes.data.map((quiz: any) => ({
         ...quiz,
         id: quiz._id,
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
       }))
     : [];
-
-  useEffect(() => {
-    localStorage.setItem("unlockedQuizzes", JSON.stringify(unlockedQuizzes));
-  }, [unlockedQuizzes]);
 
   const openConfirmModal = (quizId: string, price: number) => {
     if (tokens < price) {
@@ -69,11 +58,9 @@ export default function PsychologicalQuiz() {
     try {
       const response = await purchaseSurvey(id);
       if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
-        setUnlockedQuizzes((prev) => [...prev, id]);
-        const newUser = { ...user, tokens: tokens - price };
-        mutate(newUser, { revalidate: true });
+        await mutate(); // refresh user info
       } else {
-        throw new Error("Purchase failed");
+        throw new Error(response.message || "Purchase failed");
       }
     } catch (err: any) {
       console.error("Unlock Error:", err);
@@ -87,9 +74,7 @@ export default function PsychologicalQuiz() {
     }
   };
 
-  const handleCancel = () => {
-    setConfirmModal({ open: false, quizId: null, price: 0 });
-  };
+  const handleCancel = () => setConfirmModal({ open: false, quizId: null, price: 0 });
 
   return (
     <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
@@ -116,7 +101,7 @@ export default function PsychologicalQuiz() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {quizTypes.map((quiz, idx) => {
-            const isUnlocked = unlockedQuizzes.includes(quiz._id);
+            const isUnlocked = purchasedQuizzes.includes(quiz._id);
 
             return (
               <motion.div
@@ -130,9 +115,6 @@ export default function PsychologicalQuiz() {
                     src={quiz.image}
                     alt={quiz.title}
                     className="w-full h-full object-cover rounded-t-lg"
-                    // onError={(e) => {
-                    //   e.currentTarget.src = "/images/fallback.png";
-                    // }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
@@ -156,9 +138,7 @@ export default function PsychologicalQuiz() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() =>
-                        openConfirmModal(quiz._id, quiz.surveyToken)
-                      }
+                      onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
                       disabled={loadingId === quiz._id}
                       className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     >

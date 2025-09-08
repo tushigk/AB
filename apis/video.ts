@@ -20,3 +20,23 @@ export const getDramaEpisodeUrl = async ({m3u8Key}: {m3u8Key: string}) => {
   const res = await appHttpRequest.get("-signed-url", {m3u8Key});
   return res;
 }
+
+export const purchaseEpisode = async (dramaId: string, episodeId: string) => {
+  const res = await appHttpRequest.post("/purchase-episode", {
+    dramaId,
+    episodeId,
+  });
+  return res;
+};
+
+export const purchaseDrama = async (dramaId: string) => {
+  const res = await appHttpRequest.post("/purchase-drama", { dramaId });
+  return res;
+};
+
+export const checkDramaAccess = async (dramaId: string, episodeId: string) => {
+  const res = await appHttpRequest.get("/check-access", {
+    params: { dramaId, episodeId },
+  });
+  return res;
+};

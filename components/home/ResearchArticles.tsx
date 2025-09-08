@@ -1,7 +1,7 @@
 "use client";
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { authApi } from "@/apis";
 import Link from "next/link";
@@ -11,9 +11,6 @@ import { Article } from "./types";
 
 export default function ResearchArticles() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedArticles, setUnlockedArticles] = useState<string[]>(() => {
-    return JSON.parse(localStorage.getItem("unlockedArticles") || "[]");
-  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     articleId: string | null;
@@ -22,17 +19,15 @@ export default function ResearchArticles() {
   const [page, setPage] = useState<number>(1);
 
   const fetchUser = async () => await authApi.me();
-  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
+  const { data: user, mutate: mutateUser } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
+  const purchasedArticles = user?.purchasedArticles || [];
 
-  const { data: articlesRes, isLoading, error: articlesError } = useSWR(`articles.${page}`, () =>
-    getArticles({ page })
+  const { data: articlesRes, isLoading, error: articlesError } = useSWR(
+    `articles.${page}`,
+    () => getArticles({ page })
   );
   const articles: Article[] = articlesRes?.data || [];
-
-  useEffect(() => {
-    localStorage.setItem("unlockedArticles", JSON.stringify(unlockedArticles));
-  }, [unlockedArticles]);
 
   const openConfirmModal = (articleId: string, price: number) => {
     if (tokens < price) {
@@ -44,7 +39,6 @@ export default function ResearchArticles() {
 
   const handleConfirmUnlock = async () => {
     if (!confirmModal.articleId) return;
-
     const id = confirmModal.articleId;
     const price = confirmModal.price;
 
@@ -54,19 +48,13 @@ export default function ResearchArticles() {
     try {
       const response = await purchaseArticle(id);
       if (response.message === "Нийтлэл амжилттай худалдаж авлаа") {
-        setUnlockedArticles((prev) => [...prev, id]);
-        const newUser = { ...user, tokens: tokens - price };
-        mutate(newUser, { revalidate: true });
+        await mutateUser();
       } else {
-        throw new Error("Purchase failed");
+        throw new Error(response.message || "Purchase failed");
       }
     } catch (err: any) {
       console.error("Unlock Error:", err);
-      alert(
-        err.message === "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
-          ? "Энэ нийтлэл аль хэдийн нээгдсэн байна."
-          : "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу."
-      );
+      alert(err.message || "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setLoadingId(null);
     }
@@ -78,9 +66,7 @@ export default function ResearchArticles() {
   return (
     <section className="max-w-7xl mx-auto py-16 px-6">
       <div className="flex items-center justify-between mb-10">
-        <h1 className="text-4xl font-bold mb-8 text-foreground">
-          📰 Мэдээ мэдээлэл
-        </h1>
+        <h1 className="text-4xl font-bold mb-8 text-foreground">📰 Мэдээ мэдээлэл</h1>
         <Link
           href="/articles"
           className="text-primary hover:underline font-semibold text-lg"
@@ -92,36 +78,33 @@ export default function ResearchArticles() {
       {isLoading ? (
         <p>⏳ Уншиж байна...</p>
       ) : articlesError ? (
-        <p className="text-red-500">
-          Алдаа гарлаа: Нийтлэлүүдийг ачаалж чадсангүй.
-        </p>
+        <p className="text-red-500">Алдаа гарлаа: Нийтлэлүүдийг ачаалж чадсангүй.</p>
       ) : articles.length === 0 ? (
         <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles?.map((item, idx) => {
-            const isUnlocked = unlockedArticles?.includes(item._id);
+          {articles.map((item, idx) => {
+            const isUnlocked = purchasedArticles.includes(item._id);
             return (
               <motion.div
-                key={item._id + "-" + idx}
+                key={item._id}
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
               >
+                {/* image */}
                 <div className="relative h-64 w-full">
                   <img
                     src={item.image.url}
                     alt={item.title}
                     className="w-full h-full object-cover"
-                    // onError={(e) => {
-                    //   e.currentTarget.src = "/images/fallback.png";
-                    // }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
                     18+
                   </span>
                 </div>
+
                 <div className="p-6">
                   <h3 className="text-2xl font-bold text-foreground line-clamp-2">
                     {item.title}
@@ -139,9 +122,7 @@ export default function ResearchArticles() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() =>
-                        openConfirmModal(item._id, item.articleToken)
-                      }
+                      onClick={() => openConfirmModal(item._id, item.articleToken)}
                       disabled={loadingId === item._id}
                       className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
@@ -184,8 +165,8 @@ export default function ResearchArticles() {
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300 text-base">
-                Та <span className="font-semibold">{confirmModal.price}</span>{" "}
-                токен зарцуулж, энэ нийтлэлийг үзэх гэж байна.
+                Та <span className="font-semibold">{confirmModal.price}</span> токен зарцуулж,
+                энэ нийтлэлийг үзэх гэж байна.
               </p>
               <div className="flex justify-end gap-4">
                 <button

@@ -1,20 +1,17 @@
 "use client";
 
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { authApi, categoryApi } from "@/apis";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getArticles, getCategories, purchaseArticle } from "@/apis/article";
+import { getArticles, purchaseArticle } from "@/apis/article";
 import { Article } from "@/components/home/types";
 import { ICategory } from "@/models/category";
 
 export default function ArticlesPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [unlockedArticles, setUnlockedArticles] = useState<string[]>(() => {
-    return JSON.parse(localStorage?.getItem("unlockedArticles") || "[]");
-  });
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     articleId: string | null;
@@ -24,11 +21,14 @@ export default function ArticlesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [page, setPage] = useState<number>(1);
 
+  // ✅ Fetch user info
   const fetchUser = async () => await authApi.me();
-  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
+  const { data: user, mutate: mutateUser } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
+  const purchasedArticles = user?.purchasedArticles || [];
 
-   const { data: categoryRes } = useSWR<
+  // ✅ Fetch categories
+  const { data: categoryRes } = useSWR<
     { categories: ICategory[]; total: number; totalPages: number; currentPage: number }
   >(
     `swr.article.category.list`,
@@ -36,16 +36,14 @@ export default function ArticlesPage() {
     { revalidateOnFocus: false }
   );
 
+  // ✅ Fetch articles
   const { data: articlesRes, isLoading, error: articlesError } = useSWR(
     `articles.${page}.${selectedCategory}`,
     () => getArticles({ page, search: selectedCategory === "all" ? "" : selectedCategory })
   );
   const articles: Article[] = articlesRes?.data || [];
 
-  useEffect(() => {
-    localStorage.setItem("unlockedArticles", JSON.stringify(unlockedArticles));
-  }, [unlockedArticles]);
-
+  // Open confirm modal
   const openConfirmModal = (articleId: string, price: number) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
@@ -56,7 +54,6 @@ export default function ArticlesPage() {
 
   const handleConfirmUnlock = async () => {
     if (!confirmModal.articleId) return;
-
     const id = confirmModal.articleId;
     const price = confirmModal.price;
 
@@ -66,11 +63,9 @@ export default function ArticlesPage() {
     try {
       const response = await purchaseArticle(id);
       if (response.message === "Нийтлэл амжилттай худалдаж авлаа") {
-        setUnlockedArticles((prev) => [...prev, id]);
-        const newUser = { ...user, tokens: tokens - price };
-        mutate(newUser, { revalidate: true });
+        await mutateUser(); 
       } else {
-        throw new Error("Purchase failed");
+        throw new Error(response.message || "Purchase failed");
       }
     } catch (err: any) {
       console.error("Unlock Error:", err);
@@ -84,9 +79,8 @@ export default function ArticlesPage() {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = () =>
     setConfirmModal({ open: false, articleId: null, price: 0 });
-  };
 
   return (
     <section className="max-w-7xl mx-auto py-16 px-6">
@@ -94,14 +88,12 @@ export default function ArticlesPage() {
         <h1 className="text-4xl font-bold mb-8 text-foreground">
           📰 Бүх мэдээ мэдээлэл
         </h1>
-        <Link
-          href="/"
-          className="text-primary hover:underline font-medium"
-        >
+        <Link href="/" className="text-primary hover:underline font-medium">
           Буцах →
         </Link>
       </div>
 
+      {/* Category filter */}
       <div className="flex flex-wrap gap-4 mb-8">
         <button
           onClick={() => setSelectedCategory("all")}
@@ -115,7 +107,7 @@ export default function ArticlesPage() {
         </button>
         {categoryRes?.categories?.map((cat: any) => (
           <button
-            key={cat.id + cat.name}
+            key={cat.id}
             onClick={() => setSelectedCategory(cat.name)}
             className={`px-4 py-2 rounded-lg font-semibold ${
               selectedCategory === cat.name
@@ -138,11 +130,11 @@ export default function ArticlesPage() {
         <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles?.map((item, idx) => {
-            const isUnlocked = unlockedArticles.includes(item._id);
+          {articles.map((item, idx) => {
+            const isUnlocked = purchasedArticles.includes(item._id);
             return (
               <motion.div
-                key={item._id + "-" + idx}
+                key={item._id}
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
@@ -152,9 +144,6 @@ export default function ArticlesPage() {
                     src={item.image?.url}
                     alt={item.title}
                     className="w-full h-full object-cover"
-                    // onError={(e) => {
-                    //   e.currentTarget.src = "/images/fallback.png";
-                    // }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
@@ -196,7 +185,6 @@ export default function ArticlesPage() {
           })}
         </div>
       )}
-
       <AnimatePresence>
         {confirmModal.open && (
           <motion.div
