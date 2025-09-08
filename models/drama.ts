@@ -10,11 +10,13 @@ export class Drama implements IDrama {
   title: string;
   description: string;
   totalEpisodes: number;
-  freeEpisodes: number; // default: 5
+  freeEpisodes: number; 
   createdBy:IUser;
   image: IImage;
   dramaEpisodes: IDramaEpisode[];
   category: ICategory;
+  videoUrls?: { [episode: number]: string };
+
   episodePrices?: Record<number, number>; 
 
   constructor({ title, totalEpisodes, freeEpisodes, createdBy, description,image, dramaEpisodes, category,_id }: IDrama) {

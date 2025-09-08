@@ -2,7 +2,7 @@
 
 import { useParams, notFound } from "next/navigation";
 import useSWR from "swr";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import {
   ArrowRight,
   Play,
@@ -15,12 +15,19 @@ import {
   Maximize,
 } from "lucide-react";
 import { dramaApi } from "@/apis";
+import { Video } from "@/components/home/types";
 
 export default function EpisodePage() {
-  const { id, episode } = useParams();
+  const { id, episode } = useParams<{ id: string; episode: string }>();
+  const [currentEpisode, setCurrentEpisode] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [muted, setMuted] = useState(false);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // --- Fetch drama by ID ---
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<Video>(
     id ? `swr.drama.detail.${id}` : null,
     async () => {
       const res = await dramaApi.getDrama({ id: String(id) });
@@ -29,46 +36,45 @@ export default function EpisodePage() {
     { revalidateOnFocus: false }
   );
 
-  if (isLoading) return <p className="p-6">⏳ Уншиж байна...</p>;
-  if (error || !data) return <p className="p-6">❌ Алдаа гарлаа</p>;
-  if (!data) return notFound();
+ const videoUrlsArray = useMemo(
+  () =>
+    data?.videoUrls
+      ? Array.isArray(data.videoUrls)
+        ? data.videoUrls
+        : Object.entries(data.videoUrls).map(([key, value]) => value)
+      : [],
+  [data?.videoUrls]
+);
 
-  // --- Episodes ---
-  const initialEpisode = Number(episode) - 1; // route param is 1-based → convert to 0-based index
-  const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
+  const episodeCount = videoUrlsArray.length;
 
-  const episodeCount = data.videoUrls
-    ? Array.isArray(data.videoUrls)
-      ? data.videoUrls.length
-      : Object.keys(data.videoUrls).length
-    : 0;
+  const videoUrl = videoUrlsArray[currentEpisode];
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Set initial episode when data changes
+  useEffect(() => {
+    if (data && episode) {
+      const initialEpisode = Math.max(
+        0,
+        Math.min(Number(episode) - 1, episodeCount - 1)
+      );
+      setCurrentEpisode(initialEpisode);
+    }
+  }, [data, episode, episodeCount]);
 
-  // --- Video states ---
-  const [isPaused, setIsPaused] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [muted, setMuted] = useState(false);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-
-  // --- Get video url safely ---
-  const videoUrl = Array.isArray(data.videoUrls)
-    ? data.videoUrls[currentEpisode]
-    : data.videoUrls?.[String(currentEpisode + 1)];
-
-  // --- Progress update ---
+  // Video progress tracking
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    const update = () => {
-      setProgress((v.currentTime / v.duration) * 100 || 0);
-    };
+    const update = () => setProgress((v.currentTime / v.duration) * 100 || 0);
     v.addEventListener("timeupdate", update);
     return () => v.removeEventListener("timeupdate", update);
   }, [currentEpisode]);
 
-  // --- Handlers ---
+  // Early returns for loading/error states
+  if (isLoading) return <p className="p-6">⏳ Уншиж байна...</p>;
+  if (error || !data) return notFound();
+
+  // Handlers
   const handleNext = () => {
     if (currentEpisode < episodeCount - 1) setCurrentEpisode((prev) => prev + 1);
   };
@@ -112,7 +118,7 @@ export default function EpisodePage() {
     if (videoRef.current?.requestFullscreen) videoRef.current.requestFullscreen();
   };
 
-  // --- UI ---
+  // UI
   return (
     <div className="bg-background w-screen h-[90vh] flex items-center justify-center overflow-hidden">
       <div className="flex w-full h-full max-w-[1400px]">
@@ -197,6 +203,7 @@ export default function EpisodePage() {
                             value={volume}
                             onChange={handleVolumeChange}
                             className="w-20 h-[4px] accent-white cursor-pointer transform rotate-90 origin-center"
+                            aria-label="Volume Control"
                           />
                         </div>
                       )}
@@ -239,36 +246,21 @@ export default function EpisodePage() {
             All Episodes
           </h3>
           <div className="grid grid-cols-6 gap-2">
-            {data.videoUrls &&
-              (Array.isArray(data.videoUrls)
-                ? data.videoUrls.map((_: any, idx: any) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentEpisode(idx)}
-                      aria-label={`Play Episode ${idx + 1}`}
-                      className={`px-2 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                        idx === currentEpisode
-                          ? "bg-black/10 text-foreground font-bold"
-                          : "bg-gray-800 text-white hover:bg-background/20"
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))
-                : Object.keys(data.videoUrls).map((key, idx) => (
-                    <button
-                      key={key}
-                      onClick={() => setCurrentEpisode(idx)}
-                      aria-label={`Play Episode ${idx + 1}`}
-                      className={`px-2 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                        idx === currentEpisode
-                          ? "bg-black/10 text-foreground font-bold"
-                          : "bg-gray-800 text-white hover:bg-background/20"
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  )))}
+            {videoUrlsArray.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentEpisode(idx)}
+                aria-label={`Play Episode ${idx + 1}`}
+                aria-current={idx === currentEpisode ? "true" : "false"}
+                className={`px-2 py-2 text-sm rounded-lg transition-colors duration-200 ${
+                  idx === currentEpisode
+                    ? "bg-black/10 text-foreground font-bold"
+                    : "bg-gray-800 text-white hover:bg-background/20"
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
           </div>
         </div>
       </div>

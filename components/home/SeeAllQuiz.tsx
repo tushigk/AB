@@ -29,7 +29,7 @@ export default function SeeAllQuizPage() {
   );
 
   const quizzes: QuizType[] = Array.isArray(quizzesRes?.data)
-    ? quizzesRes.data.map((quiz: any) => ({
+    ? quizzesRes.data.map((quiz: QuizType) => ({
         ...quiz,
         id: quiz._id,
         image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
@@ -60,14 +60,14 @@ export default function SeeAllQuizPage() {
       } else {
         throw new Error(response.message || "Purchase failed");
       }
-    } catch (err: any) {
-      console.error("Unlock Error:", err);
-      alert(
-        err.message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
-          ? "Энэ тест аль хэдийн нээгдсэн байна."
-          : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
-      );
-    } finally {
+    } catch (err: unknown) {
+  const message = err instanceof Error ? err.message : "Unknown error";
+  alert(
+    message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
+      ? "Энэ тест аль хэдийн нээгдсэн байна."
+      : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
+  );
+}finally {
       setLoadingId(null);
     }
   };

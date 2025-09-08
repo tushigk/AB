@@ -21,13 +21,11 @@ export default function ArticlesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [page, setPage] = useState<number>(1);
 
-  // ✅ Fetch user info
   const fetchUser = async () => await authApi.me();
   const { data: user, mutate: mutateUser } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
   const purchasedArticles = user?.purchasedArticles || [];
 
-  // ✅ Fetch categories
   const { data: categoryRes } = useSWR<
     { categories: ICategory[]; total: number; totalPages: number; currentPage: number }
   >(
@@ -36,14 +34,12 @@ export default function ArticlesPage() {
     { revalidateOnFocus: false }
   );
 
-  // ✅ Fetch articles
   const { data: articlesRes, isLoading, error: articlesError } = useSWR(
     `articles.${page}.${selectedCategory}`,
     () => getArticles({ page, search: selectedCategory === "all" ? "" : selectedCategory })
   );
   const articles: Article[] = articlesRes?.data || [];
 
-  // Open confirm modal
   const openConfirmModal = (articleId: string, price: number) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
@@ -97,7 +93,6 @@ export default function ArticlesPage() {
         </Link>
       </div>
 
-      {/* Category filter */}
       <div className="flex flex-wrap gap-4 mb-8">
         <button
           onClick={() => setSelectedCategory("all")}
