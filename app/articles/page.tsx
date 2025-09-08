@@ -67,13 +67,17 @@ export default function ArticlesPage() {
       } else {
         throw new Error(response.message || "Purchase failed");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Unlock Error:", err);
-      alert(
-        err.message === "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
-          ? "Энэ нийтлэл аль хэдийн нээгдсэн байна."
-          : "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу."
-      );
+      if (err && typeof err === "object" && "message" in err && typeof (err as { message: unknown }).message === "string") {
+        alert(
+          (err as { message: string }).message === "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
+            ? "Энэ нийтлэл аль хэдийн нээгдсэн байна."
+            : "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу."
+        );
+      } else {
+        alert("Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      }
     } finally {
       setLoadingId(null);
     }
@@ -105,9 +109,9 @@ export default function ArticlesPage() {
         >
           Бүгд
         </button>
-        {categoryRes?.categories?.map((cat: any) => (
+        {categoryRes?.categories?.map((cat: ICategory) => (
           <button
-            key={cat.id}
+            key={cat._id}
             onClick={() => setSelectedCategory(cat.name)}
             className={`px-4 py-2 rounded-lg font-semibold ${
               selectedCategory === cat.name

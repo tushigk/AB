@@ -18,23 +18,24 @@ export default function PsychologicalQuiz() {
   }>({ open: false, quizId: null, price: 0 });
   const [page, setPage] = useState<number>(1);
 
-  // fetch user info
   const fetchUser = async () => await authApi.me();
   const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
-  const purchasedQuizzes = user?.purchasedSurveys || []; // get purchased quizzes from backend
+  const purchasedQuizzes = user?.purchasedSurveys || []; 
 
-  // fetch quizzes
-  const { data: quizzesRes, isLoading, error: quizzesError } = useSWR(
-    `quizzes.${page}`,
-    () => getSurveys({ page })
-  );
+  const {
+    data: quizzesRes,
+    isLoading,
+    error: quizzesError,
+  } = useSWR(`quizzes.${page}`, () => getSurveys({ page }));
 
   const quizTypes: QuizType[] = Array.isArray(quizzesRes?.data)
-    ? quizzesRes.data.map((quiz: any) => ({
+    ? quizzesRes.data.map((quiz: QuizType) => ({
         ...quiz,
         id: quiz._id,
-        image: quiz.image ? `/images/${quiz.image}.png` : "/images/fallback.png",
+        image: quiz.image
+          ? `/images/${quiz.image}.png`
+          : "/images/fallback.png",
       }))
     : [];
 
@@ -62,10 +63,10 @@ export default function PsychologicalQuiz() {
       } else {
         throw new Error(response.message || "Purchase failed");
       }
-    } catch (err: any) {
-      console.error("Unlock Error:", err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
       alert(
-        err.message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
+        message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
           ? "Энэ тест аль хэдийн нээгдсэн байна."
           : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
       );
@@ -74,7 +75,8 @@ export default function PsychologicalQuiz() {
     }
   };
 
-  const handleCancel = () => setConfirmModal({ open: false, quizId: null, price: 0 });
+  const handleCancel = () =>
+    setConfirmModal({ open: false, quizId: null, price: 0 });
 
   return (
     <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
@@ -138,7 +140,9 @@ export default function PsychologicalQuiz() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
+                      onClick={() =>
+                        openConfirmModal(quiz._id, quiz.surveyToken)
+                      }
                       disabled={loadingId === quiz._id}
                       className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     >
@@ -182,7 +186,8 @@ export default function PsychologicalQuiz() {
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Та {confirmModal.price} токен зарцуулж, энэ тестийг нээх гэж байна!
+                Та {confirmModal.price} токен зарцуулж, энэ тестийг нээх гэж
+                байна!
               </p>
               <div className="flex justify-end gap-3">
                 <button

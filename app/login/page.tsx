@@ -34,7 +34,7 @@ export default function LoginPage() {
     message.success("Амжилттай нэвтэрлээ");
     router.push("/"); 
     console.log("Logged in user:", user);
-  } catch (err: any) {
+  } catch (err: unknown) {
     setError("username");
   }
 });

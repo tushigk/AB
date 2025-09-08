@@ -79,7 +79,7 @@ export default function AllVideosPage() {
           className="px-4 py-2 rounded-2xl border border-input bg-card text-sm shadow-sm hover:shadow-md transition"
         >
           <option value="">Бүх ангилал</option>
-          {categoryRes?.categories?.map((cat: any) => (
+          {categoryRes?.categories?.map((cat: ICategory) => (
             <option key={cat._id} value={cat._id}>
               {cat.name}
             </option>

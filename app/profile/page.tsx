@@ -30,7 +30,11 @@ export default function ProfilePage() {
         : Array.isArray(submissionsData)
         ? submissionsData
         : [];
-      const surveyIds = submissions.map((submission: any) => submission.surveyId).filter(Boolean);
+      interface Submission {
+        surveyId: string;
+        // add other properties if needed
+      }
+      const surveyIds = submissions.map((submission: Submission) => submission.surveyId).filter(Boolean);
       const quizPromises = surveyIds.map((id: string) => getSurvey(id));
       const quizResults = await Promise.all(quizPromises);
       return quizResults.map((res) => ({
@@ -153,7 +157,7 @@ export default function ProfilePage() {
             <p className="text-gray-400">Танд авсан мэдээ байхгүй байна.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {newsData?.map((news: any, idx: number) => (
+              {newsData?.map((news: { id: string; title: string; description: string }, idx: number) => (
                 <motion.div
                   key={`${news.id}-${idx}`}
                   initial={{ opacity: 0, y: 40 }}

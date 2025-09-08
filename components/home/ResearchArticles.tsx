@@ -52,9 +52,13 @@ export default function ResearchArticles() {
       } else {
         throw new Error(response.message || "Purchase failed");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Unlock Error:", err);
-      alert(err.message || "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      if (err instanceof Error) {
+        alert(err.message || "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      } else {
+        alert("Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      }
     } finally {
       setLoadingId(null);
     }
