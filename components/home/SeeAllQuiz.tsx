@@ -80,9 +80,6 @@ export default function SeeAllQuizPage() {
         <h2 className="text-3xl font-heading font-bold text-foreground">
           Бүх тестүүд 🤔
         </h2>
-        <Link href="/" className="text-primary hover:underline font-medium">
-          Буцах →
-        </Link>
       </div>
 
       {isLoading ? (

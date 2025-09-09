@@ -88,9 +88,6 @@ export default function ArticlesPage() {
         <h1 className="text-4xl font-bold mb-8 text-foreground">
           📰 Бүх мэдээ мэдээлэл
         </h1>
-        <Link href="/" className="text-primary hover:underline font-medium">
-          Буцах →
-        </Link>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-8">

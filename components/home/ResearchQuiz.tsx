@@ -85,8 +85,8 @@ export default function PsychologicalQuiz() {
           Өөрийгөө илүү мэдмээр байна уу? 🤔
         </h2>
         <Link
-          href="/quizzes"
-          className="text-primary hover:underline font-medium"
+          href="/articles"
+          className="text-primary hover:underline font-semibold text-lg"
         >
           Бүгдийг үзэх →
         </Link>
