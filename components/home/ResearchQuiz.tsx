@@ -1,26 +1,19 @@
 "use client";
 
-import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { LockClosedIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
 import { QuizType } from "./types";
 import { authApi } from "@/apis";
-import { motion, AnimatePresence } from "framer-motion";
-import { getSurveys, purchaseSurvey } from "@/apis/survey";
+import { motion } from "framer-motion";
+import { getSurveys } from "@/apis/survey";
 
 export default function PsychologicalQuiz() {
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{
-    open: boolean;
-    quizId: string | null;
-    price: number;
-  }>({ open: false, quizId: null, price: 0 });
   const [page, setPage] = useState<number>(1);
 
   const fetchUser = async () => await authApi.me();
-  const { data: user, mutate, error: userError } = useSWR("userMe", fetchUser);
-  const tokens = user?.tokens || 0;
+  const { data: user, error: userError } = useSWR("userMe", fetchUser);
   const purchasedQuizzes = user?.purchasedSurveys || []; 
 
   const {
@@ -38,45 +31,6 @@ export default function PsychologicalQuiz() {
           : "/images/fallback.png",
       }))
     : [];
-
-  const openConfirmModal = (quizId: string, price: number) => {
-    if (tokens < price) {
-      alert("Таны токен хүрэлцэхгүй байна!");
-      return;
-    }
-    setConfirmModal({ open: true, quizId, price });
-  };
-
-  const handleConfirmUnlock = async () => {
-    if (!confirmModal.quizId) return;
-
-    const id = confirmModal.quizId;
-    const price = confirmModal.price;
-
-    setLoadingId(id);
-    setConfirmModal({ ...confirmModal, open: false });
-
-    try {
-      const response = await purchaseSurvey(id);
-      if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
-        await mutate(); // refresh user info
-      } else {
-        throw new Error(response.message || "Purchase failed");
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      alert(
-        message === "Та энэ судалгааг аль хэдийн худалдаж авсан байна"
-          ? "Энэ тест аль хэдийн нээгдсэн байна."
-          : "Тест нээхэд алдаа гарлаа. Дахин оролдоно уу."
-      );
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
-  const handleCancel = () =>
-    setConfirmModal({ open: false, quizId: null, price: 0 });
 
   return (
     <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
@@ -131,82 +85,23 @@ export default function PsychologicalQuiz() {
                     {quiz.description}
                   </p>
 
-                  {isUnlocked ? (
-                    <Link
-                      href={`/quizzes/${quiz._id}`}
-                      className="mt-4 block w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-2 rounded-lg shadow-md"
-                    >
-                      🔓 Нээгдсэн - Үзэх
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        openConfirmModal(quiz._id, quiz.surveyToken)
-                      }
-                      disabled={loadingId === quiz._id}
-                      className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-secondary to-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition"
-                    >
-                      <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === quiz._id
-                        ? "Нээж байна..."
-                        : `Нээх (${quiz.surveyToken} токен)`}
-                    </button>
-                  )}
+                  <Link
+                    href={`/quizzes/${quiz._id}`}
+                    className={`mt-4 block w-full font-semibold py-2 rounded-lg shadow-md text-white ${
+                      isUnlocked
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "bg-gradient-to-r from-secondary to-accent hover:opacity-90 flex items-center justify-center gap-2"
+                    }`}
+                  >
+                    {!isUnlocked && <LockClosedIcon className="w-5 h-5" />}
+                    {isUnlocked ? "🔓 Нээгдсэн - Үзэх" : "Нээх"}
+                  </Link>
                 </div>
               </motion.div>
             );
           })}
         </div>
       )}
-
-      <AnimatePresence>
-        {confirmModal.open && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-                  Токенээр нээх
-                </h3>
-                <button
-                  onClick={handleCancel}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                >
-                  <XMarkIcon className="w-5 h-5" />
-                </button>
-              </div>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Та {confirmModal.price} токен зарцуулж, энэ тестийг нээх гэж
-                байна!
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                >
-                  Цуцлах
-                </button>
-                <button
-                  onClick={handleConfirmUnlock}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition transform"
-                >
-                  Баталгаажуулах
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
