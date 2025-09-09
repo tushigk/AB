@@ -7,3 +7,4 @@ export * as dramaApi from "./video";
 export * as articleApi from "./article";
 export * as bannerApi from "./banner";
 export * as surveyApi from "./survey";
+export * as privacyApi from "./privacy";

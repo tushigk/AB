@@ -11,7 +11,10 @@ interface VideoGridProps {
   initialCount?: number;
 }
 
-export default function VideoGrid({ videos, initialCount = 8 }: VideoGridProps) {
+export default function VideoGrid({
+  videos,
+  initialCount = 8,
+}: VideoGridProps) {
   const [showAll, setShowAll] = useState(false);
   const displayedVideos = showAll ? videos : videos.slice(0, initialCount);
 
@@ -59,19 +62,13 @@ export default function VideoGrid({ videos, initialCount = 8 }: VideoGridProps) 
               </p>
 
               <div className="mt-4">
-                {item.freeEpisodes.length > 0 ? (
+                {item.freeEpisodes.length > 0 && (
                   <Link
                     href={`/videos/${item._id}`}
                     className="w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white font-semibold px-4 py-2 rounded-xl shadow-md hover:scale-105 transition-transform"
                   >
                     <PlayIcon className="w-5 h-5 mr-2" /> Үзэх
                   </Link>
-                ) : (
-                  <button
-                    className="w-full inline-flex items-center justify-center bg-gradient-to-r from-secondary to-accent text-white font-semibold px-4 py-2 rounded-xl shadow-md hover:scale-105 transition-transform"
-                  >
-                    <LockClosedIcon className="w-5 h-5 mr-2" /> {item.dramaToken}₮ нээх
-                  </button>
                 )}
               </div>
             </div>
