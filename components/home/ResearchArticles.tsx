@@ -68,7 +68,7 @@ export default function ResearchArticles() {
     setConfirmModal({ open: false, articleId: null, price: 0 });
 
   return (
-    <section className="max-w-7xl mx-auto py-16 px-6">
+    <section className="md:max-w-4/5  mx-auto py-16 px-6">
       <div className="flex items-center justify-between mb-10">
         <h1 className="text-4xl font-bold mb-8 text-foreground">📰 Мэдээ мэдээлэл</h1>
         <Link

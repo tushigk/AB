@@ -111,7 +111,7 @@ export default function VideoDetailPage() {
 
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-6">
+    <div className="md:max-w-4/5  mx-auto py-10 px-6">
       <h1 className="text-3xl font-bold mb-6">{video.title}</h1>
       <p className="text-gray-600 mb-6">{video.description}</p>
 

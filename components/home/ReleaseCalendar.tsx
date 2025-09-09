@@ -4,7 +4,7 @@ import { days } from "./types";
 
 export default function ReleaseCalendar() {
   return (
-    <section className="max-w-6xl mx-auto py-16 px-6">
+    <section className="md:max-w-4/5  mx-auto py-16 px-6">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

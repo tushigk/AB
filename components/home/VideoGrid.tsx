@@ -19,7 +19,7 @@ export default function VideoGrid({
   const displayedVideos = showAll ? videos : videos.slice(0, initialCount);
 
   return (
-    <section className="max-w-7xl mx-auto py-16 px-6">
+    <section className="md:max-w-4/5  mx-auto py-16 px-6">
       <div className="flex items-center justify-between mb-10">
         <h2 className="text-4xl font-heading font-extrabold text-foreground">
           🎬 Сүүлд гарсан

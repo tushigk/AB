@@ -47,7 +47,7 @@ export default function ArticlePageClient() {
   }
 
   return (
-    <div className="max-w-3xl md:max-w-5xl mx-auto py-12 px-6">
+    <div className="max-w-3xl md:max-w-3/5 mx-auto py-12 px-6">
       <motion.h1
         className="text-4xl md:text-5xl font-extrabold mb-6 bg-clip-text bg-gradient-to-r text-secondary animate-gradient-x"
         initial={{ opacity: 0, y: -20 }}

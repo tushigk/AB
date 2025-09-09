@@ -71,7 +71,7 @@ export default function AllVideosPage() {
     })) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background text-foreground font-sans">
+    <div className="min-h-screen  bg-gradient-to-b from-background via-muted/30 to-background text-foreground font-sans">
       <div className="relative bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-16 px-6 rounded-b-3xl shadow-lg">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
