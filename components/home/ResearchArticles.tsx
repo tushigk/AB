@@ -23,10 +23,11 @@ export default function ResearchArticles() {
   const tokens = user?.tokens || 0;
   const purchasedArticles = user?.purchasedArticles || [];
 
-  const { data: articlesRes, isLoading, error: articlesError } = useSWR(
-    `articles.${page}`,
-    () => getArticles({ page })
-  );
+  const {
+    data: articlesRes,
+    isLoading,
+    error: articlesError,
+  } = useSWR(`articles.${page}`, () => getArticles({ page }));
   const articles: Article[] = articlesRes?.data || [];
 
   const openConfirmModal = (articleId: string, price: number) => {
@@ -70,7 +71,9 @@ export default function ResearchArticles() {
   return (
     <section className="md:max-w-4/5  mx-auto py-16 px-6">
       <div className="flex items-center justify-between mb-10">
-        <h1 className="text-4xl font-bold mb-8 text-foreground">📰 Мэдээ мэдээлэл</h1>
+        <h1 className="text-4xl font-bold mb-8 text-foreground">
+          📰 Мэдээ мэдээлэл
+        </h1>
         <Link
           href="/articles"
           className="text-primary hover:underline font-semibold text-lg"
@@ -82,7 +85,9 @@ export default function ResearchArticles() {
       {isLoading ? (
         <p>⏳ Уншиж байна...</p>
       ) : articlesError ? (
-        <p className="text-red-500">Алдаа гарлаа: Нийтлэлүүдийг ачаалж чадсангүй.</p>
+        <p className="text-red-500">
+          Алдаа гарлаа: Нийтлэлүүдийг ачаалж чадсангүй.
+        </p>
       ) : articles.length === 0 ? (
         <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
@@ -113,9 +118,10 @@ export default function ResearchArticles() {
                   <h3 className="text-2xl font-bold text-foreground line-clamp-2">
                     {item.title}
                   </h3>
-                  <p className="text-foreground/70 mt-3 line-clamp-3">
-                    {item.description}
-                  </p>
+                  <div
+                    className="prose prose-lg prose-invert max-w-full leading-relaxed text-gray-800 dark:text-gray-200"
+                    dangerouslySetInnerHTML={{ __html: item.description }}
+                  />
 
                   {isUnlocked ? (
                     <Link
@@ -126,7 +132,9 @@ export default function ResearchArticles() {
                     </Link>
                   ) : (
                     <button
-                      onClick={() => openConfirmModal(item._id, item.articleToken)}
+                      onClick={() =>
+                        openConfirmModal(item._id, item.articleToken)
+                      }
                       disabled={loadingId === item._id}
                       className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
@@ -169,8 +177,8 @@ export default function ResearchArticles() {
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300 text-base">
-                Та <span className="font-semibold">{confirmModal.price}</span> токен зарцуулж,
-                энэ нийтлэлийг үзэх гэж байна.
+                Та <span className="font-semibold">{confirmModal.price}</span>{" "}
+                токен зарцуулж, энэ нийтлэлийг үзэх гэж байна.
               </p>
               <div className="flex justify-end gap-4">
                 <button
