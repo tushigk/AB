@@ -12,6 +12,7 @@ interface DramaEpisode {
   thumbnailUrl: string;
   m3u8Key: string;
   videoKey: string;
+  episodeToken: number;
 }
 
 interface DramaResponse {
@@ -49,9 +50,10 @@ export default function VideoDetailPage() {
     thumbnailUrl: ep.thumbnailUrl || data.image?.url || "/placeholder.jpg",
     m3u8Key: ep.m3u8Key,
     videoKey: ep.videoKey,
-
+    episodeToken: data.episodeToken,
   })),
   totalEpisodes: data.totalEpisodes,
+  episodeToken: data.episodeToken,
   freeEpisodes: Array.isArray(data.freeEpisodes)
     ? data.freeEpisodes
     : Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),
@@ -79,6 +81,8 @@ export default function VideoDetailPage() {
 //           thumbnailUrl: ep.thumbnailUrl || data.image?.url || "/placeholder.jpg",
 //           m3u8Key: ep.m3u8Key,
 //           videoKey: ep.videoKey,
+//           episodeToken: data.episodeToken,
+
 //         }
 //       : {
 //           _id: `placeholder-${i + 1}`,
@@ -86,9 +90,11 @@ export default function VideoDetailPage() {
 //           thumbnailUrl: data.image?.url || "/placeholder.jpg",
 //           m3u8Key: "",
 //           videoKey: "",
+//           episodeToken: data.episodeToken,
 //         };
 //   }),
 //   totalEpisodes: data.totalEpisodes,
+//   episodeToken: data.episodeToken,
 //   freeEpisodes: Array.isArray(data.freeEpisodes)
 //     ? data.freeEpisodes
 //     : Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),

@@ -73,7 +73,7 @@ export default function VideoEpisodes({ video }: Props) {
         {video.dramaEpisodes.map((ep) => {
           const isFree = video.freeEpisodes.includes(ep.episodeNumber);
           const isUnlocked = unlockedEpisodes.includes(ep._id);
-          const price = video.episodePrices;
+          const price = video.episodeToken;
 
           return (
             <div
@@ -101,7 +101,7 @@ export default function VideoEpisodes({ video }: Props) {
                   </Link>
                 ) : (
                   <button
-                    onClick={() => openConfirmModal(ep._id, ep.episodeNumber, price[ep.episodeNumber] || 0)}
+                    onClick={() => openConfirmModal(ep._id, ep.episodeNumber, price || 0)}
                     disabled={loadingEpisode === ep._id}
                     className="inline-flex items-center bg-gradient-to-r from-secondary to-accent text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
                   >

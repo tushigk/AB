@@ -14,6 +14,7 @@ export interface Video {
   }[];
   dramaToken: number;
   episodePrices: { [episode: number]: number };
+  episodeToken: number;
 }
 
 
