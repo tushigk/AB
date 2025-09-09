@@ -1,4 +1,5 @@
 'use client'
+
 import { Provider } from "react-redux";
 import { store } from "@/store"; 
 import { Geist, Geist_Mono } from "next/font/google";
@@ -8,6 +9,7 @@ import InitProvider from "@/context/InitProvider";
 import Header from "@/components/home/Header";
 import Sidebar from "@/components/home/SideBar";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,20 +28,30 @@ export default function RootLayout({
 }) {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const pathname = usePathname(); 
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  const hideHeaderPages = ["/login", "/register"];
+
+  const showHeader = !hideHeaderPages.includes(pathname);
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Provider store={store}>
           <ThemeProvider>
             <InitProvider>
-                <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                    <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+              {showHeader && (
+                <>
+                  <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                  <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                </>
+              )}
               {children}
-              </InitProvider>
+            </InitProvider>
           </ThemeProvider>
         </Provider>
       </body>
