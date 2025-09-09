@@ -11,12 +11,33 @@ import SubscriptionCTA from "@/components/home/Subscription";
 import VideoGrid from "@/components/home/VideoGrid";
 import { IDrama } from "@/models/drama";
 import { dramaApi } from "@/apis";
-
-const ageFetcher = () => {
+import { Video } from "@/components/home/types";
+const ageFetcher = (): boolean | null => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("ageConfirmed") === "true";
 };
+interface GetDramasParams {
+  page: number;
+  search?: string;
+  categoryId?: string;
+}
 
+interface IDramaApiResponse {
+  data: {
+    _id: string;
+    title: string;
+    description: string;
+    image?: { url: string };
+    totalEpisodes: number;
+    freeEpisodes: number;
+    dramaToken: number;
+    episodeToken: number;
+    dramaEpisodes?: [];
+  }[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+}
 export default function Home() {
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
@@ -33,30 +54,31 @@ export default function Home() {
     window.location.href = "https://google.com";
   };
 
-  const { data: dramaRes } = useSWR<
-    { data: IDrama[]; total: number; totalPages: number; currentPage: number }
-  >(
-    isAllowed ? `swr.drama.list.${page}.${search}.${selectedCategory}` : null,
+  const { data: dramaRes, isLoading: isDramaLoading } = useSWR<IDramaApiResponse>(
+    ["swr.drama.list", page, search, selectedCategory],
     async () =>
       dramaApi.getDramas({
         page,
         search,
-      }),
+        categoryId: selectedCategory || undefined, 
+      } as GetDramasParams),
     { revalidateOnFocus: false }
   );
 
-  const videos =
-    dramaRes?.data?.map((drama) => ({
-      id: drama._id,
-      title: drama.title,
-      description: drama.description,
-      thumbnail: drama.image?.url || "/placeholder.jpg",
-      episodes: drama.totalEpisodes,
-      freeEpisodes: Array.from({ length: drama.freeEpisodes }, (_, i) => i + 1),
-      episodePrices: drama.episodePrices || {},
+  const mappedVideos: Video[] =
+    dramaRes?.data?.map((item) => ({
+      _id: item._id,
+      title: item.title,
+      description: item.description,
+      thumbnail: item.image?.url || "/placeholder.jpg",
+      totalEpisodes: item.totalEpisodes,
+      freeEpisodes: Array.from({ length: item.freeEpisodes }, (_, i) => i + 1),
+      dramaToken: item.dramaToken,
+      dramaEpisodes: item.dramaEpisodes || [],
+      episodePrices: {},
+      episodeToken: item.episodeToken,
     })) || [];
 
-  // still loading localStorage check
   if (isAllowed === undefined) return null;
 
   if (!isAllowed) {
@@ -88,9 +110,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <HeroCarousel videos={videos} />
+      <HeroCarousel videos={mappedVideos} />
       <ReleaseCalendar />
-      <VideoGrid videos={videos} />
+      <VideoGrid videos={mappedVideos} initialCount={mappedVideos.length} />
       <ResearchArticles />
       <PsychologicalQuiz />
       <SubscriptionCTA />
