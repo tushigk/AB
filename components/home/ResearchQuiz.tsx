@@ -94,7 +94,7 @@ export default function PsychologicalQuiz() {
                     }`}
                   >
                     {!isUnlocked && <LockClosedIcon className="w-5 h-5" />}
-                    {isUnlocked ? "🔓 Нээгдсэн - Үзэх" : "Нээх"}
+                    {isUnlocked ? "🔓 Нээгдсэн - Үзэх" : `Нээх (${quiz.surveyToken} токен)`}
                   </Link>
                 </div>
               </motion.div>
