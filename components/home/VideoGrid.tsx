@@ -5,6 +5,9 @@ import { PlayIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Video } from "./types";
+import { ICategory } from "@/models/category";
+import useSWR from "swr";
+import { categoryApi } from "@/apis";
 
 interface VideoGridProps {
   videos: Video[];
@@ -17,6 +20,13 @@ export default function VideoGrid({
 }: VideoGridProps) {
   const [showAll, setShowAll] = useState(false);
   const displayedVideos = showAll ? videos : videos.slice(0, initialCount);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const { data: categoryRes } = useSWR<{ categories: ICategory[] }>(
+    "swr.article.category.list",
+    async () => categoryApi.getCategorys({ type: "Article" }),
+    { revalidateOnFocus: false }
+  );
 
   return (
     <section className="md:max-w-4/5  mx-auto py-16 px-6">
@@ -30,6 +40,32 @@ export default function VideoGrid({
         >
           Бүгдийг үзэх →
         </Link>
+      </div>
+
+       <div className="flex flex-wrap gap-4 mb-8">
+        <button
+          onClick={() => setSelectedCategory("all")}
+          className={`px-4 py-2 rounded-lg font-semibold ${
+            selectedCategory === "all"
+              ? "bg-gradient-to-r from-secondary to-accent text-white"
+              : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+          } transition`}
+        >
+          Бүгд
+        </button>
+        {categoryRes?.categories?.map((cat: ICategory) => (
+          <button
+            key={cat._id}
+            onClick={() => setSelectedCategory(cat.name)}
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              selectedCategory === cat.name
+                ? "bg-gradient-to-r from-secondary to-accent text-white"
+                : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+            } transition`}
+          >
+            {cat.name}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">

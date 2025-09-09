@@ -82,33 +82,6 @@ export default function AllVideosPage() {
           </p>
         </div>
       </div>
-
-      <div className="max-w-7xl mx-auto py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative w-full md:w-1/2">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Видео хайх..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-2xl border border-input bg-card text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 rounded-2xl border border-input bg-card text-sm shadow-sm hover:shadow-md transition"
-        >
-          <option value="">Бүх ангилал</option>
-          {categoryRes?.categories?.map((cat: ICategory) => (
-            <option key={cat._id} value={cat._id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       <div className="max-w-full mx-auto px-6 pb-16">
         {isDramaLoading ? (
           <p className="text-center text-lg mt-10">⏳ Түр хүлээнэ үү...</p>
