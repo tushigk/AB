@@ -3,72 +3,64 @@
 import { motion } from "framer-motion";
 import useSWR from "swr";
 import { authApi } from "@/apis";
-import { getSurvey, getUserSubmissions } from "@/apis/survey";
-import { QuizType } from "@/components/home/types";
+import { Article, QuizType, Video } from "@/components/home/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { getSurvey } from "@/apis/survey";
+import { getArticleById } from "@/apis/article";
+import { getDrama } from "@/apis/video";
 
-const fetcher = async () => {
-  const res = await authApi.me();
-  return res;
-};
+const fetcher = async () => await authApi.me();
 
 export default function ProfilePage() {
   const { data: user, error: userError, isLoading: userLoading } = useSWR("me", fetcher);
   const [page] = useState(1); 
 
-  const { data: submissionsData, error: submissionsError, isLoading: submissionsLoading } = useSWR(
-    `submissions.${page}`,
-    () => getUserSubmissions({ page })
-  );
-
-  const { data: purchasedQuizzes, error: quizzesError, isLoading: quizzesLoading } = useSWR(
-    submissionsData ? `purchasedQuizzes.${page}` : null,
+  const { data: purchasedQuizzes, error: quizzesError } = useSWR(
+    user ? `purchasedQuizzes.${page}` : null,
     async () => {
-      const submissions = Array.isArray(submissionsData?.data)
-        ? submissionsData.data
-        : Array.isArray(submissionsData)
-        ? submissionsData
-        : [];
-      interface Submission {
-        surveyId: string;
-        // add other properties if needed
-      }
-      const surveyIds = submissions.map((submission: Submission) => submission.surveyId).filter(Boolean);
-      const quizPromises = surveyIds.map((id: string) => getSurvey(id));
-      const quizResults = await Promise.all(quizPromises);
-      return quizResults.map((res) => ({
+      const quizPromises = (user.purchasedSurveys || []).map((id: string) => getSurvey(id));
+      const results = await Promise.all(quizPromises);
+      return results.map((res) => ({
         ...(res.data || res),
         id: (res.data || res)._id,
-        image: (res.data || res).image
-          ? `/images/${(res.data || res).image}.png`
-          : "/g",
+        image: (res.data || res).image ? `/images/${(res.data || res).image}.png` : "/images/fallback.png",
       }));
     }
   );
 
-  const { data: newsData, error: newsError, isLoading: newsLoading } = useSWR(
-    "userNews",
+  const { data: purchasedArticles, error: articlesError } = useSWR(
+    user ? `purchasedArticles.${page}` : null,
     async () => {
-      return [
-        { id: "news1", title: "Sample News 1", description: "Health update 1" },
-        { id: "news2", title: "Sample News 2", description: "Health update 2" },
-      ];
+      const articlePromises = (user.purchasedArticles || []).map((id: string) => getArticleById(id));
+      const results = await Promise.all(articlePromises);
+      return results.map((res) => ({
+        ...(res.data || res),
+        id: (res.data || res)._id,
+        image: (res.data || res).image ? `/images/${(res.data || res).image}.png` : "/images/fallback.png",
+      }));
     }
   );
 
-  if (userLoading || submissionsLoading || quizzesLoading || newsLoading) {
-    return <p className="text-white text-center mt-12">⏳ Ачааллаж байна...</p>;
-  }
+  const { data: purchasedDramas, error: dramasError } = useSWR(
+    user ? `purchasedDramas.${page}` : null,
+    async () => {
+      const dramaPromises = (user.purchasedDramas || []).map((id: string) => getDrama({id}));
+      const results = await Promise.all(dramaPromises);
+      return results.map((res) => ({
+        ...(res.data || res),
+        id: (res.data || res)._id,
+        image: (res.data || res).image ? `/images/${(res.data || res).image}.png` : "/images/fallback.png",
+      }));
+    }
+  );
 
-  if (userError || submissionsError || quizzesError || newsError) {
-    return <p className="text-red-500 text-center mt-12">Алдаа гарлаа: Мэдээлэл ачаалж чадсангүй.</p>;
-  }
+  if (userLoading) return <p className="text-white text-center mt-12">⏳ Ачааллаж байна...</p>;
+  if (userError) return <p className="text-red-500 text-center mt-12">Алдаа гарлаа: Мэдээлэл ачаалж чадсангүй.</p>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-12 px-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Profile Header */}
+      <div className="md:max-w-4/5  max-w-full mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,7 +84,7 @@ export default function ProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <p className="text-2xl font-bold">{user?.userRequestCount || 0}</p>
+              <p className="text-2xl font-bold">{(user?.purchasedSurveys || []).length}</p>
               <p className="text-sm text-gray-200">Авсан тест</p>
             </motion.div>
             <motion.div
@@ -100,7 +92,7 @@ export default function ProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <p className="text-2xl font-bold">{user?.doctorAnsweredUserCount || 0}</p>
+              <p className="text-2xl font-bold">{(user?.purchasedArticles || []).length}</p>
               <p className="text-sm text-gray-200">Авсан мэдээ</p>
             </motion.div>
           </div>
@@ -120,24 +112,9 @@ export default function ProfilePage() {
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
                 >
-                  <div className="relative h-40 w-full">
-                    <img
-                      src={quiz.image}
-                      alt={quiz.title}
-                      className="w-full h-full object-cover rounded-t-lg"
-                      // onError={(e) => {
-                      //   e.currentTarget.src = "/images/fallback.png";
-                      // }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                  </div>
+                  <img src={quiz.image} alt={quiz.title} className="w-full h-40 object-cover" />
                   <div className="p-4">
-                    <h3 className="font-bold text-lg text-white line-clamp-2">
-                      {quiz.title}
-                    </h3>
-                    <p className="text-sm text-gray-300 mt-2 line-clamp-2">
-                      {quiz.description}
-                    </p>
+                    <h3 className="font-bold text-lg text-white line-clamp-2">{quiz.title}</h3>
                     <Link
                       href={`/quizzes/${quiz.id}`}
                       className="mt-4 block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg text-center"
@@ -151,32 +128,58 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <section>
+        <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Миний авсан мэдээ</h2>
-          {newsData?.length === 0 ? (
+          {purchasedArticles?.length === 0 ? (
             <p className="text-gray-400">Танд авсан мэдээ байхгүй байна.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {newsData?.map((news: { id: string; title: string; description: string }, idx: number) => (
+              {purchasedArticles?.map((article: Article, idx: number) => (
                 <motion.div
-                  key={`${news.id}-${idx}`}
+                  key={`${article._id}-${idx}`}
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
                 >
+                  <img src={article.image.url} alt={article.title} className="w-full h-40 object-cover" />
                   <div className="p-4">
-                    <h3 className="font-bold text-lg text-white line-clamp-2">
-                      {news.title}
-                    </h3>
-                    <p className="text-sm text-gray-300 mt-2 line-clamp-2">
-                      {news.description}
-                    </p>
+                    <h3 className="font-bold text-lg text-white line-clamp-2">{article.title}</h3>
                     <Link
-                      href={`/news/${news.id}`} 
+                      href={`/articles/${article._id}`}
                       className="mt-4 block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg text-center"
                     >
                       Унших
+                    </Link>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Миний авсан драмууд</h2>
+          {purchasedDramas?.length === 0 ? (
+            <p className="text-gray-400">Танд авсан драм байхгүй байна.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {purchasedDramas?.map((drama: Video, idx: number) => (
+                <motion.div
+                  key={`${drama._id}-${idx}`}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
+                >
+                  <img src={drama.thumbnail} alt={drama.title} className="w-full h-40 object-cover" />
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-white line-clamp-2">{drama.title}</h3>
+                    <Link
+                      href={`/dramas/${drama._id}`}
+                      className="mt-4 block w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 rounded-lg text-center"
+                    >
+                      🎬 Үзэх
                     </Link>
                   </div>
                 </motion.div>
