@@ -6,6 +6,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import useSWR from "swr";
 import { getPrivacy } from "@/apis/privacy";
 import { X } from "lucide-react";
+import { Modal } from "antd";
 
 export type IRegisterForm = {
   username: string;
@@ -148,35 +149,34 @@ export function RegisterForm({ onSubmit, control, errors, loading }: Props) {
         </button>
       </form>
 
-      {modalOpen && privacy && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-[#1E1E2A] p-6 rounded-lg max-w-1/2 w-full relative max-h-[80vh] overflow-y-auto">
-            <button
-              className="absolute top-3 right-3 text-gray-400"
-              onClick={() => setModalOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-semibold text-white mb-4">
-              Үйлчилгээний нөхцөл
-            </h2>
-            <div
-              className="text-gray-300"
-              dangerouslySetInnerHTML={{ __html: privacy.content }}
-            />
-            {privacy.link && (
-              <a
-                href={privacy.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-purple-400 hover:underline mt-2 block"
-              >
-                дэлгэрэнгүй
-              </a>
-            )}
-          </div>
-        </div>
-      )}
+      <Modal
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        footer={null}
+        centered
+        width="50%"
+        className="custom-privacy-modal"
+      >
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Үйлчилгээний нөхцөл
+        </h2>
+
+        <div
+          className="text-gray-300 space-y-3 leading-relaxed modal-body"
+          dangerouslySetInnerHTML={{ __html: privacy?.content }}
+        />
+
+        {privacy?.link && (
+          <a
+            href={privacy.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-400 hover:underline mt-4 inline-block"
+          >
+            Дэлгэрэнгүй үзэх
+          </a>
+        )}
+      </Modal>
     </>
   );
 }

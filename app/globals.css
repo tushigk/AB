@@ -61,3 +61,21 @@ body {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px); /* Safari support */
 }
+.custom-privacy-modal .ant-modal-content {
+  background-color: #1E1E2A; /* dark theme */
+  color: #d1d5db;
+  border-radius: 1rem;
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+.custom-privacy-modal .ant-modal-body {
+  overflow-y: auto;
+  flex: 1;
+}
+/* ✅ Blur + darken modal background */
+.ant-modal-root .ant-modal-mask {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); /* Safari */
+  background-color: rgba(0, 0, 0, 0.6) !important; /* keep dim overlay */
+}
