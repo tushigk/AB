@@ -4,31 +4,105 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import VideoEpisodes from "@/components/home/VideoEpisodes";
 import { dramaApi } from "@/apis";
+import { Video } from "@/components/home/types";
+
+interface DramaEpisode {
+  _id: string;
+  episodeNumber: number;
+  thumbnailUrl: string;
+  m3u8Key: string;
+  videoKey: string;
+}
+
+interface DramaResponse {
+  _id: string;
+  title: string;
+  description: string;
+  dramaEpisodes: DramaEpisode[];
+  totalEpisodes: number;
+  freeEpisodes: number[];
+  episodeToken: number;
+  dramaToken: number;
+  image?: { url: string };
+}
 
 export default function VideoDetailPage() {
   const { id } = useParams();
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error } = useSWR<DramaResponse>(
     id ? `swr.drama.detail.${id}` : null,
-    async () => {
-      const res = await dramaApi.getDrama({ id: String(id) });
-      return res;
-    },
+    async () => await dramaApi.getDrama({ id: String(id) }),
     { revalidateOnFocus: false }
   );
 
   if (isLoading) return <p className="p-6">⏳ Уншиж байна...</p>;
   if (error || !data) return <p className="p-6">❌ Алдаа гарлаа</p>;
 
-  const video = {
-    id: data._id,
-    title: data.title,
-    description: data.description,
-    thumbnail: data.image?.url || "/placeholder.jpg",
-    episodes: data.totalEpisodes,
-    freeEpisodes: Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),
-    episodeToken: data.episodeToken || {}, 
-  };
+  const video: Video = {
+  _id: data._id,
+  title: data.title,
+  description: data.description,
+  thumbnail: data.image?.url || "/placeholder.jpg",
+  dramaEpisodes: data.dramaEpisodes.map((ep) => ({
+    _id: ep._id,
+    episodeNumber: ep.episodeNumber,
+    thumbnailUrl: ep.thumbnailUrl || data.image?.url || "/placeholder.jpg",
+    m3u8Key: ep.m3u8Key,
+    videoKey: ep.videoKey,
+
+  })),
+  totalEpisodes: data.totalEpisodes,
+  freeEpisodes: Array.isArray(data.freeEpisodes)
+    ? data.freeEpisodes
+    : Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),
+  episodePrices: Array.from({ length: data.totalEpisodes }, () => data.episodeToken).reduce(
+    (acc, price, index) => {
+      acc[index + 1] = price;
+      return acc;
+    },
+    {} as { [episode: number]: number }
+  ),
+  dramaToken: data.dramaToken,
+};
+
+// const video: Video = {
+//   _id: data._id,
+//   title: data.title,
+//   description: data.description,
+//   thumbnail: data.image?.url || "/placeholder.jpg",
+//   dramaEpisodes: Array.from({ length: data.totalEpisodes }, (_, i) => {
+//     const ep = data.dramaEpisodes[i];
+//     return ep
+//       ? {
+//           _id: ep._id,
+//           episodeNumber: ep.episodeNumber,
+//           thumbnailUrl: ep.thumbnailUrl || data.image?.url || "/placeholder.jpg",
+//           m3u8Key: ep.m3u8Key,
+//           videoKey: ep.videoKey,
+//         }
+//       : {
+//           _id: `placeholder-${i + 1}`,
+//           episodeNumber: i + 1,
+//           thumbnailUrl: data.image?.url || "/placeholder.jpg",
+//           m3u8Key: "",
+//           videoKey: "",
+//         };
+//   }),
+//   totalEpisodes: data.totalEpisodes,
+//   freeEpisodes: Array.isArray(data.freeEpisodes)
+//     ? data.freeEpisodes
+//     : Array.from({ length: data.freeEpisodes }, (_, i) => i + 1),
+//   episodePrices: Array.from({ length: data.totalEpisodes }, () => data.episodeToken).reduce(
+//     (acc, price, index) => {
+//       acc[index + 1] = price;
+//       return acc;
+//     },
+//     {} as { [episode: number]: number }
+//   ),
+//   dramaToken: data.dramaToken,
+// };
+
+
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">

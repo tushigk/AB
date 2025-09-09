@@ -1,13 +1,22 @@
 export interface Video {
-  id: string | number; 
+  _id: string;
   title: string;
+  description: string;
   thumbnail: string;
-  episodes: number;
+  totalEpisodes: number;
   freeEpisodes: number[];
-  videoUrls?: { [episode: number]: string };
-  episodePrices?: { [episode: number]: number };
-  description?: string;
+  dramaEpisodes: {
+    _id: string;
+    episodeNumber: number;
+    thumbnailUrl: string;
+    m3u8Key: string;
+    videoKey: string;
+  }[];
+  dramaToken: number;
+  episodePrices: { [episode: number]: number };
 }
+
+
 
 export interface Article {
   _id: string;

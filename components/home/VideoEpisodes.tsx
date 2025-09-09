@@ -6,101 +6,107 @@ import Link from "next/link";
 import useSWR from "swr";
 import { Video } from "./types";
 import { authApi } from "@/apis";
+import { purchaseEpisode } from "@/apis/video";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   video: Video;
 }
 
-const fetchUser = async () => {
-  const res = await authApi.me();
-  return res;
-};
+const fetchUser = async () => await authApi.me();
 
 export default function VideoEpisodes({ video }: Props) {
-  const [loadingEpisode, setLoadingEpisode] = useState<number | null>(null);
-  const [unlockedEpisodes, setUnlockedEpisodes] = useState<number[]>([]);
+  const [loadingEpisode, setLoadingEpisode] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
-    episode: number | null;
+    episodeId: string | null;
+    episodeNumber: number | null;
     price: number;
-  }>({ open: false, episode: null, price: 0 });
+  }>({ open: false, episodeId: null, episodeNumber: null, price: 0 });
 
-  const { data: user, mutate } = useSWR("userMe", fetchUser);
+  const { data: user, mutate: mutateUser } = useSWR("userMe", fetchUser);
   const tokens = user?.tokens || 0;
+  const unlockedEpisodes = user?.unlockedEpisodes || [];
 
-  const openConfirmModal = (episode: number, price: number) => {
+  const openConfirmModal = (episodeId: string, episodeNumber: number, price: number) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
       return;
     }
-    setConfirmModal({ open: true, episode, price });
+    setConfirmModal({ open: true, episodeId, episodeNumber, price });
   };
 
   const handleConfirmUnlock = async () => {
-    if (!confirmModal.episode) return;
+    if (!confirmModal.episodeId) return;
 
-    const episode = confirmModal.episode;
+    const episodeId = confirmModal.episodeId;
     const price = confirmModal.price;
 
-    setLoadingEpisode(episode);
+    setLoadingEpisode(episodeId);
     setConfirmModal({ ...confirmModal, open: false });
 
     try {
-      setUnlockedEpisodes((prev) => [...prev, episode]);
-      const newUser = { ...user, tokens: tokens - price };
-      mutate(newUser, false);
-    } catch (err) {
-      console.error("Failed to unlock episode:", err);
+      const response = await purchaseEpisode(video._id, episodeId);
+      if (response.message === "Анги амжилттай нээгдлээ") {
+        await mutateUser();
+      } else {
+        throw new Error(response.message || "Unlock failed");
+      }
+    } catch (err: unknown) {
+      console.error("Unlock Error:", err);
+      if (err instanceof Error) {
+        alert(err.message || "Анги нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      } else {
+        alert("Анги нээхэд алдаа гарлаа. Дахин оролдоно уу.");
+      }
     } finally {
       setLoadingEpisode(null);
     }
   };
 
-  const handleCancel = () => {
-    setConfirmModal({ open: false, episode: null, price: 0 });
-  };
+  const handleCancel = () =>
+    setConfirmModal({ open: false, episodeId: null, episodeNumber: null, price: 0 });
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: video.episodes }, (_, i) => i + 1).map((episode) => {
-          const isFree = video.freeEpisodes.includes(episode);
-          const isUnlocked = unlockedEpisodes.includes(episode);
-          const price = video.episodePrices?.[episode] ?? 1;
+        {video.dramaEpisodes.map((ep) => {
+          const isFree = video.freeEpisodes.includes(ep.episodeNumber);
+          const isUnlocked = unlockedEpisodes.includes(ep._id);
+          const price = video.episodePrices;
 
           return (
             <div
-              key={episode}
+              key={ep._id}
               className="group relative bg-card rounded-xl overflow-hidden shadow hover:shadow-lg transition"
             >
               <div className="relative h-40 w-full">
                 <img
-                  src={video.thumbnail}
-                  alt={`${video.title} - ${episode}-р анги`}
+                  src={ep.thumbnailUrl || video.thumbnail}
+                  alt={`${video.title} - ${ep.episodeNumber}-р анги`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition" />
               </div>
 
               <div className="p-4 flex items-center justify-between">
-                <span className="font-medium">{episode}-р анги</span>
+                <span className="font-medium">{ep.episodeNumber}-р анги</span>
 
                 {isFree || isUnlocked ? (
                   <Link
-                    href={`/videos/${video.id}/part/${episode}`}
+                    href={`/videos/${video._id}/part/${ep.episodeNumber}`}
                     className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
                   >
                     <PlayIcon className="w-4 h-4 mr-1" /> Үзэх
                   </Link>
                 ) : (
                   <button
-                    onClick={() => openConfirmModal(episode, price)}
-                    disabled={loadingEpisode === episode}
+                    onClick={() => openConfirmModal(ep._id, ep.episodeNumber, price[ep.episodeNumber] || 0)}
+                    disabled={loadingEpisode === ep._id}
                     className="inline-flex items-center bg-gradient-to-r from-secondary to-accent text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
                   >
                     <LockClosedIcon className="w-4 h-4 mr-1" />
-                    {loadingEpisode === episode
+                    {loadingEpisode === ep._id
                       ? "Нээж байна..."
                       : `Нээх (${price} токен)`}
                   </button>
@@ -134,12 +140,15 @@ export default function VideoEpisodes({ video }: Props) {
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                   Токенээр нээх
                 </h3>
-                <button onClick={handleCancel} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <button
+                  onClick={handleCancel}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Та {confirmModal.price} токен зарцуулж, энэ ангийн нээх гэж байна!
+                Та {confirmModal.price} токен зарцуулж, {confirmModal.episodeNumber}-р ангийг нээх гэж байна!
               </p>
               <div className="flex justify-end gap-3">
                 <button
