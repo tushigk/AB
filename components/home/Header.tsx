@@ -57,13 +57,13 @@ export default function Header({ isSidebarOpen, toggleSidebar }: HeaderProps) {
             <div className="flex items-center">
               {theme === "dark" ? (
                 <img
-                  src="/logodark.png"
+                  src="/logo.png"
                   alt="Logo Dark"
                   className="w-20 h-12 md:w-28 md:h-16"
                 />
               ) : (
                 <img
-                  src="/logolight.png"
+                  src="/logo.png"
                   alt="Logo Light"
                   className="w-20 h-12 md:w-28 md:h-16"
                 />

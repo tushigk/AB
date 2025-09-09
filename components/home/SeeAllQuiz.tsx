@@ -56,7 +56,7 @@ export default function SeeAllQuizPage() {
     try {
       const response = await purchaseSurvey(id);
       if (response.message === "Судалгаа амжилттай худалдаж авлаа") {
-        await mutate(); // refresh user info
+        await mutate(); 
       } else {
         throw new Error(response.message || "Purchase failed");
       }
