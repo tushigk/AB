@@ -23,7 +23,7 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
         className="h-full"
       >
         {videos.map((item) => (
-          <SwiperSlide key={item.id}>
+          <SwiperSlide key={item._id}>
             <div className="relative w-full h-full">
               <img
                 src={item.thumbnail}
@@ -69,7 +69,7 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
                   transition={{ delay: 0.7 }}
                 >
                   <Link
-                    href={`/videos/${item.id}`}
+                    href={`/videos/${item._id}`}
                     className="mt-8 inline-block bg-gradient-to-r from-primary to-secondary text-white text-lg font-medium px-10 py-4 rounded-full shadow-xl hover:scale-105 hover:shadow-2xl transition-transform"
                     aria-label={`Explore ${item.title}`}
                   >
