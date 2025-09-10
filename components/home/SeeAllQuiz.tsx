@@ -114,7 +114,7 @@ export default function SeeAllQuizPage() {
                   </span>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-2">
+                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-1">
                     {quiz.title}
                   </h3>
                   <p className="text-sm text-foreground/70 mt-2 line-clamp-2">
@@ -124,7 +124,7 @@ export default function SeeAllQuizPage() {
                   {isUnlocked ? (
                     <Link
                       href={`/quizzes/${quiz._id}`}
-                      className="mt-4 block w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-2 rounded-lg shadow-md"
+                      className="mt-4 w-full bg-green-500 hover:bg-green-600 transition text-white font-semibold py-2 rounded-lg shadow-md  flex justify-center items-center gap-2"
                     >
                       🔓 Нээгдсэн - Үзэх
                     </Link>

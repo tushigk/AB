@@ -14,7 +14,7 @@ export default function PsychologicalQuiz() {
 
   const fetchUser = async () => await authApi.me();
   const { data: user, error: userError } = useSWR("userMe", fetchUser);
-  const purchasedQuizzes = user?.purchasedSurveys || []; 
+  const purchasedQuizzes = user?.purchasedSurveys || [];
 
   const {
     data: quizzesRes,
@@ -64,7 +64,10 @@ export default function PsychologicalQuiz() {
                 key={`${quiz._id}-${idx}`}
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
+                className="relative flex flex-col bg-gradient-to-br from-background/80 to-background/50 
+             backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden 
+             shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform
+             h-[380px]"
               >
                 <div className="relative h-40 w-full">
                   <img
@@ -77,25 +80,30 @@ export default function PsychologicalQuiz() {
                     18+
                   </span>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-2">
+
+                <div className="flex flex-col flex-grow p-4">
+                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-1">
                     {quiz.title}
                   </h3>
                   <p className="text-sm text-foreground/70 mt-2 line-clamp-2">
                     {quiz.description}
                   </p>
 
-                  <Link
-                    href={`/quizzes/${quiz._id}`}
-                    className={`mt-4 block w-full font-semibold py-2 rounded-lg shadow-md text-white ${
-                      isUnlocked
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-gradient-to-r from-secondary to-accent hover:opacity-90 flex items-center justify-center gap-2"
-                    }`}
-                  >
-                    {!isUnlocked && <LockClosedIcon className="w-5 h-5" />}
-                    {isUnlocked ? "🔓 Нээгдсэн - Үзэх" : `Нээх (${quiz.surveyToken} токен)`}
-                  </Link>
+                  <div className="mt-auto">
+                    <Link
+                      href={`/quizzes/${quiz._id}`}
+                      className={`mt-4 block w-full font-semibold py-2 rounded-lg shadow-md text-white ${
+                        isUnlocked
+                          ? "bg-green-500 hover:bg-green-600 items-center justify-center gap-2 flex"
+                          : "bg-gradient-to-r from-secondary to-accent hover:opacity-90  flex items-center justify-center gap-2"
+                      }`}
+                    >
+                      {!isUnlocked && <LockClosedIcon className="w-5 h-5" />}
+                      {isUnlocked
+                        ? "🔓 Нээгдсэн - Үзэх"
+                        : `Нээх (${quiz.surveyToken} токен)`}
+                    </Link>
+                  </div>
                 </div>
               </motion.div>
             );

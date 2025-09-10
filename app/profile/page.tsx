@@ -59,7 +59,7 @@ export default function ProfilePage() {
   if (userError) return <p className="text-red-500 text-center mt-12">Алдаа гарлаа: Мэдээлэл ачаалж чадсангүй.</p>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-12 px-6">
+    <div className="min-h-screen bg-gray-900 text-white py-12 px-6 bg-gradient-to-br from-primary to-secondary">
       <div className="md:max-w-4/5  max-w-full mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
