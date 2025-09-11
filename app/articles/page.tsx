@@ -17,7 +17,7 @@ export default function ArticlesPage() {
     articleId: string | null;
     price: number;
   }>({ open: false, articleId: null, price: 0 });
-  
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [page, setPage] = useState<number>(1);
 
@@ -26,17 +26,26 @@ export default function ArticlesPage() {
   const tokens = user?.tokens || 0;
   const purchasedArticles = user?.purchasedArticles || [];
 
-  const { data: categoryRes } = useSWR<
-    { categories: ICategory[]; total: number; totalPages: number; currentPage: number }
-  >(
+  const { data: categoryRes } = useSWR<{
+    categories: ICategory[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }>(
     `swr.article.category.list`,
     async () => categoryApi.getCategorys({ type: "Article" }),
     { revalidateOnFocus: false }
   );
 
-  const { data: articlesRes, isLoading, error: articlesError } = useSWR(
-    `articles.${page}.${selectedCategory}`,
-    () => getArticles({ page, search: selectedCategory === "all" ? "" : selectedCategory })
+  const {
+    data: articlesRes,
+    isLoading,
+    error: articlesError,
+  } = useSWR(`articles.${page}.${selectedCategory}`, () =>
+    getArticles({
+      page,
+      search: selectedCategory === "all" ? "" : selectedCategory,
+    })
   );
   const articles: Article[] = articlesRes?.data || [];
 
@@ -59,15 +68,21 @@ export default function ArticlesPage() {
     try {
       const response = await purchaseArticle(id);
       if (response.message === "Нийтлэл амжилттай худалдаж авлаа") {
-        await mutateUser(); 
+        await mutateUser();
       } else {
         throw new Error(response.message || "Purchase failed");
       }
     } catch (err: unknown) {
       console.error("Unlock Error:", err);
-      if (err && typeof err === "object" && "message" in err && typeof (err as { message: unknown }).message === "string") {
+      if (
+        err &&
+        typeof err === "object" &&
+        "message" in err &&
+        typeof (err as { message: unknown }).message === "string"
+      ) {
         alert(
-          (err as { message: string }).message === "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
+          (err as { message: string }).message ===
+            "Та энэ нийтлэлийг аль хэдийн худалдаж авсан байна"
             ? "Энэ нийтлэл аль хэдийн нээгдсэн байна."
             : "Нийтлэл нээхэд алдаа гарлаа. Дахин оролдоно уу."
         );
@@ -125,7 +140,7 @@ export default function ArticlesPage() {
       ) : articles.length === 0 ? (
         <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {articles.map((item, idx) => {
             const isUnlocked = purchasedArticles.includes(item._id);
             return (
@@ -135,28 +150,29 @@ export default function ArticlesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
               >
-                <div className="relative h-64 w-full">
+                <div className="relative w-full aspect-video">
                   <img
                     src={
-                      // item.image?.url
-                      // ||
+                      // item.image?.url ||
                       "/education.png"
                     }
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                  <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
-                    18+
-                  </span>
+                  {!isUnlocked && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <LockClosedIcon className="w-10 h-10 text-white" />
+                    </div>
+                  )}
                 </div>
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-foreground line-clamp-2">
+                <div className="p-4">
+                  <h3 className="font-heading font-bold text-foreground text-lg line-clamp-1">
                     {item.title}
                   </h3>
-                  <p className="text-foreground/70 mt-3 line-clamp-3">
-                    {item.description}
-                  </p>
+                 <div
+                    className="prose prose-lg prose-invert max-w-full leading-relaxed text-gray-800 dark:text-gray-200"
+                    dangerouslySetInnerHTML={{ __html: item.description }}
+                  />
 
                   {isUnlocked ? (
                     <Link
@@ -171,7 +187,7 @@ export default function ArticlesPage() {
                         openConfirmModal(item._id, item.articleToken || 0)
                       }
                       disabled={loadingId === item._id}
-                      className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
+                      className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold py-3 cursor-pointer rounded-xl shadow-lg"
                     >
                       <LockClosedIcon className="w-5 h-5" />
                       {loadingId === item._id

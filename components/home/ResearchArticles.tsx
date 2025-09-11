@@ -91,7 +91,7 @@ export default function ResearchArticles() {
       ) : articles.length === 0 ? (
         <p>Нийтлэлүүд олдсонгүй</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {articles.map((item, idx) => {
             const isUnlocked = purchasedArticles.includes(item._id);
             return (
@@ -102,20 +102,20 @@ export default function ResearchArticles() {
                 className="relative bg-gradient-to-br from-background/80 to-background/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-transform"
               >
                 {/* image */}
-                <div className="relative h-64 w-full">
+                <div className="relative w-full aspect-video">
                   <img
                     src={
-                      // item.image.url
-                      // ||
+                      // item.image?.url ||
                       "/education.png"
                     }
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                  <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
-                    18+
-                  </span>
+                  {!isUnlocked && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <LockClosedIcon className="w-10 h-10 text-white" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6">
@@ -140,7 +140,7 @@ export default function ResearchArticles() {
                         openConfirmModal(item._id, item.articleToken)
                       }
                       disabled={loadingId === item._id}
-                      className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-semibold py-3 rounded-xl shadow-lg"
+                      className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gray-700 to-gray-900 cursor-pointer text-white font-semibold py-3 rounded-xl shadow-lg"
                     >
                       <LockClosedIcon className="w-5 h-5" />
                       {loadingId === item._id
