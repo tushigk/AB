@@ -7,7 +7,6 @@ import "./globals.css";
 import { ThemeProvider } from "../context/ThemeContext";
 import InitProvider from "@/context/InitProvider";
 import Header from "@/components/home/Header";
-import Sidebar from "@/components/home/SideBar";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -46,8 +45,7 @@ export default function RootLayout({
             <InitProvider>
               {showHeader && (
                 <>
-                  <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                  <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                  <Header/>
                 </>
               )}
               {children}

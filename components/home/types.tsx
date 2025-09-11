@@ -74,4 +74,16 @@ export interface QuizType {
   isPurchased?: boolean;
 }
 
+export interface Banner {
+  _id: string;
+  title: string;
+  description?: string;
+  image: {
+    _id: string;
+    url: string;
+  };
+  link?: string;
+}
+
+
 export const days: string[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];

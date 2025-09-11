@@ -1,20 +1,22 @@
 "use client";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Video } from "./types";
+import useSWR from "swr";
+import { getBanners } from "@/apis/banner";
+import { Banner } from "./types";
 
-interface HeroCarouselProps {
-  videos: Video[];
-}
+export default function HeroCarousel() {
+  const { data: banners, isLoading, error } = useSWR("banner", getBanners);
 
-export default function HeroCarousel({ videos }: HeroCarouselProps) {
+  if (isLoading) return <div className="h-[90vh] flex items-center justify-center text-white">Loading...</div>;
+  if (error) return <div className="h-[90vh] flex items-center justify-center text-red-500">Failed to load banners</div>;
+
   return (
-    <section className="relative w-full h-[90vh]">
+    <section className="relative w-full h-[90vh] z-10">
       <Swiper
         modules={[Navigation, Autoplay]}
         navigation
@@ -22,27 +24,19 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
         loop
         className="h-full"
       >
-        {videos.map((item) => (
+        {banners?.map((item: Banner) => (
           <SwiperSlide key={item._id}>
             <div className="relative w-full h-full">
               <img
-                src={item.thumbnail}
+                src={
+                  // item.image?.url || 
+                  "/image2.webp"}
                 alt={item.title}
-                className="object-cover brightness-[0.75]"
+                className="w-full h-full object-cover brightness-[0.75]"
               />
-
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
               <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
-                <motion.span
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="absolute top-6 right-6 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow-lg"
-                >
-                  18+
-                </motion.span>
-
                 <motion.h2
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -63,19 +57,21 @@ export default function HeroCarousel({ videos }: HeroCarouselProps) {
                   </motion.p>
                 )}
 
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <Link
-                    href={`/videos/${item._id}`}
-                    className="mt-8 inline-block bg-gradient-to-r from-primary to-secondary text-white text-lg font-medium px-10 py-4 rounded-full shadow-xl hover:scale-105 hover:shadow-2xl transition-transform"
-                    aria-label={`Explore ${item.title}`}
+                {/* {item.link && ( */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
                   >
-                    Контент үзэх
-                  </Link>
-                </motion.div>
+                    <Link
+                      href={"#"}
+                      className="mt-8 inline-block bg-gradient-to-r from-primary to-secondary text-white text-lg font-medium px-10 py-4 rounded-full shadow-xl hover:scale-105 hover:shadow-2xl transition-transform"
+                      aria-label={`Explore ${item.title}`}
+                    >
+                      Контент үзэх
+                    </Link>
+                  </motion.div>
+                {/* )} */}
               </div>
             </div>
           </SwiperSlide>
