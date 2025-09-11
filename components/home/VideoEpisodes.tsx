@@ -105,7 +105,7 @@ export default function VideoEpisodes({ video }: Props) {
               </div>
 
               <div className="p-4 flex items-center justify-between">
-                <span className="font-medium text-gray-800 dark:text-gray-200">
+                <span className="font-medium text-foreground">
                   {ep.episodeNumber}-р анги
                 </span>
 
@@ -127,7 +127,7 @@ export default function VideoEpisodes({ video }: Props) {
                     <LockClosedIcon className="w-4 h-4" />
                     {loadingEpisode === ep._id
                       ? "Нээж байна..."
-                      : `Нээх (${price} токен)`}
+                      : `Нээх (${price} 🪙)`}
                   </button>
                 )}
               </div>

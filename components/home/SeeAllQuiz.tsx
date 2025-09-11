@@ -141,12 +141,12 @@ export default function SeeAllQuizPage() {
                     <button
                       onClick={() => openConfirmModal(quiz._id, quiz.surveyToken)}
                       disabled={loadingId === quiz._id}
-                      className="mt-4 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-gray-700 to-gray-900 text-white px-4 py-2 rounded-md hover:opacity-90 transition"
+                      className="mt-4 flex items-center justify-center font-semibold gap-2 w-full bg-gradient-to-r from-gray-700 to-gray-900 text-white px-4 py-2 rounded-md hover:opacity-90 transition"
                     >
                       <LockClosedIcon className="w-5 h-5" />
                       {loadingId === quiz._id
                         ? "Нээж байна..."
-                        : `Нээх (${quiz.surveyToken} токен)`}
+                        : `Нээх (${quiz.surveyToken} 🪙)`}
                     </button>
                   )}
                 </div>

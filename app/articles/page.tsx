@@ -194,9 +194,9 @@ export default function ArticlesPage() {
                       className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold py-3 cursor-pointer rounded-xl shadow-lg"
                     >
                       <LockClosedIcon className="w-5 h-5" />
-                      {loadingId === item._id
-                        ? "Нээж байна..."
-                        : `Нээх (${item.articleToken} токен)`}
+                       {loadingId === item._id
+                          ? "Нээж байна..."
+                          : `Нээх (${item.articleToken} 🪙)`}
                     </button>
                   )}
                 </div>

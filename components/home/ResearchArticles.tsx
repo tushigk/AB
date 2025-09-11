@@ -149,7 +149,7 @@ export default function ResearchArticles() {
                       <LockClosedIcon className="w-5 h-5" />
                       {loadingId === item._id
                         ? "Нээж байна..."
-                        : `Нээх (${item.articleToken} токен)`}
+                        : `Нээх (${item.articleToken} 🪙)`}
                     </button>
                   )}
                 </div>

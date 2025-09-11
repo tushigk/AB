@@ -71,7 +71,7 @@ export default function Header() {
             return (
               <Link key={item.href} href={item.href}>
                 <span
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[16px] font-medium transition-colors ${
                     isActive
                       ? "bg-primary text-white shadow-md"
                       : "text-foreground hover:bg-primary/10 hover:text-primary"
@@ -87,7 +87,11 @@ export default function Header() {
 
         <div className="flex items-center gap-4 ml-auto">
           {user ? (
-            <div className="relative hidden md:block">
+            <div className="relative hidden md:flex items-center gap-7">
+              <p className="text-[16px] font-medium text-foreground">
+                Таны токен: {user.tokens || 0} 🪙
+              </p>
+
               <button
                 onClick={() => setProfileMenuOpen((prev) => !prev)}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white"
@@ -101,7 +105,7 @@ export default function Header() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-40 bg-background border border-foreground/10 rounded-xl shadow-lg py-2"
+                    className="absolute right-0 mt-12 w-40 bg-background border border-foreground/10 rounded-xl shadow-lg py-2"
                   >
                     <Link
                       href="/profile"
