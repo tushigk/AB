@@ -98,7 +98,7 @@ export default function Pricing() {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-primary to-secondary text-white flex items-center justify-center p-6 h-full min-h-screen">
+      <div className="bg-background text-white flex items-center justify-center p-6 h-full min-h-screen">
         <div className="w-full max-w-6xl">
           <motion.div
             variants={container}

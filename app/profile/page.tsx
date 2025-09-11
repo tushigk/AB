@@ -59,7 +59,7 @@ export default function ProfilePage() {
   if (userError) return <p className="text-red-500 text-center mt-12">Алдаа гарлаа: Мэдээлэл ачаалж чадсангүй.</p>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-12 px-6 bg-gradient-to-br from-primary to-secondary">
+    <div className="min-h-screen bg-background text-white py-12 px-6 ">
       <div className="md:max-w-4/5  max-w-full mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -99,7 +99,7 @@ export default function ProfilePage() {
         </motion.div>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Миний худалдаж авсан тестүүд</h2>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Миний худалдаж авсан тестүүд</h2>
           {purchasedQuizzes?.length === 0 ? (
             <p className="text-gray-400">Танд худалдаж авсан тест байхгүй байна.</p>
           ) : (
@@ -129,9 +129,9 @@ export default function ProfilePage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Миний авсан мэдээ</h2>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Миний авсан мэдээ</h2>
           {purchasedArticles?.length === 0 ? (
-            <p className="text-gray-400">Танд авсан мэдээ байхгүй байна.</p>
+            <p className="text-gray-400 text-foreground">Танд авсан мэдээ байхгүй байна.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {purchasedArticles?.map((article: Article, idx: number) => (
@@ -159,9 +159,9 @@ export default function ProfilePage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Миний авсан драмууд</h2>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Миний авсан драмууд</h2>
           {purchasedDramas?.length === 0 ? (
-            <p className="text-gray-400">Танд авсан драм байхгүй байна.</p>
+            <p className="text-gray-400 text-foreground">Танд авсан драм байхгүй байна.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {purchasedDramas?.map((drama: Video, idx: number) => (
