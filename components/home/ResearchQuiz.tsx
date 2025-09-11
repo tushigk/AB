@@ -74,7 +74,7 @@ export default function PsychologicalQuiz() {
                     src={
                       // quiz.image
                       // || 
-                      "/education.png"
+                      "/test.png"
                     }
                     alt={quiz.title}
                     className="w-full h-full object-cover rounded-t-lg"

@@ -53,11 +53,10 @@ export default function Header() {
   return (
     <header className="w-full bg-background/70 backdrop-blur-lg shadow-sm sticky top-0 z-50">
       <div className="max-w-full mx-auto flex items-center justify-between px-8 py-3 relative">
-        
         <div className="flex-shrink-0">
           <Link href="/" className="flex items-center gap-2">
             <motion.img
-              src="/logo.png"
+              src={theme === "light" ? "/logolight.png" : "/logodark.png"}
               alt="Logo"
               className="w-10 md:w-28"
               whileHover={{ scale: 1.05 }}
@@ -145,7 +144,11 @@ export default function Header() {
             className="md:hidden p-2 rounded-lg bg-primary text-white"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
