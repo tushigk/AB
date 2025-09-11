@@ -112,6 +112,11 @@ export default function SeeAllQuizPage() {
                     alt={quiz.title}
                     className="w-full h-full object-cover rounded-t-lg"
                   />
+                    {!isUnlocked && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <LockClosedIcon className="w-10 h-10 text-white" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
                     18+

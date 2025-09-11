@@ -164,6 +164,10 @@ export default function ArticlesPage() {
                       <LockClosedIcon className="w-10 h-10 text-white" />
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                  <span className="absolute top-3 right-3 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow">
+                    18+
+                  </span>
                 </div>
                 <div className="p-4">
                   <h3 className="font-heading font-bold text-foreground text-lg line-clamp-1">
