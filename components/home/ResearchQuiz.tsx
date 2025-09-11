@@ -33,7 +33,7 @@ export default function PsychologicalQuiz() {
     : [];
 
   return (
-    <section className="md:max-w-4/5 max-w-full mx-auto py-12 px-12">
+    <section className="md:max-w-4/5  mx-auto py-16 px-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-heading font-bold text-foreground">
           Өөрийгөө илүү мэдмээр байна уу? 🤔
