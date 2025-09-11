@@ -110,7 +110,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <HeroCarousel videos={mappedVideos} />
+      <HeroCarousel />
       <ReleaseCalendar />
       <VideoGrid videos={mappedVideos} initialCount={mappedVideos.length} showFilters={false}  />
       <ResearchArticles />
