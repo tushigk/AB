@@ -137,7 +137,11 @@ export default function ArticlesPage() {
               >
                 <div className="relative h-64 w-full">
                   <img
-                    src={item.image?.url}
+                    src={
+                      // item.image?.url
+                      // ||
+                      "/education.png"
+                    }
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />

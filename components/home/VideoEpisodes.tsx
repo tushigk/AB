@@ -28,7 +28,11 @@ export default function VideoEpisodes({ video }: Props) {
   const tokens = user?.tokens || 0;
   const unlockedEpisodes = user?.unlockedEpisodes || [];
 
-  const openConfirmModal = (episodeId: string, episodeNumber: number, price: number) => {
+  const openConfirmModal = (
+    episodeId: string,
+    episodeNumber: number,
+    price: number
+  ) => {
     if (tokens < price) {
       alert("Таны токен хүрэлцэхгүй байна!");
       return;
@@ -54,18 +58,23 @@ export default function VideoEpisodes({ video }: Props) {
       }
     } catch (err: unknown) {
       console.error("Unlock Error:", err);
-      if (err instanceof Error) {
-        alert(err.message || "Анги нээхэд алдаа гарлаа. Дахин оролдоно уу.");
-      } else {
-        alert("Анги нээхэд алдаа гарлаа. Дахин оролдоно уу.");
-      }
+      alert(
+        err instanceof Error
+          ? err.message || "Анги нээхэд алдаа гарлаа. Дахин оролдоно уу."
+          : "Анги нээхэд алдаа гарлаа. Дахин оролдоно уу."
+      );
     } finally {
       setLoadingEpisode(null);
     }
   };
 
   const handleCancel = () =>
-    setConfirmModal({ open: false, episodeId: null, episodeNumber: null, price: 0 });
+    setConfirmModal({
+      open: false,
+      episodeId: null,
+      episodeNumber: null,
+      price: 0,
+    });
 
   return (
     <>
@@ -78,34 +87,44 @@ export default function VideoEpisodes({ video }: Props) {
           return (
             <div
               key={ep._id}
-              className="group relative bg-card rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+              className="group relative bg-card rounded-xl overflow-hidden shadow hover:shadow-xl transition transform hover:-translate-y-1"
             >
-              <div className="relative h-40 w-full">
+              <div className="relative w-full aspect-video">
                 <img
-                  src={ep.thumbnailUrl || video.thumbnail}
+                  src={
+                    // ep.thumbnailUrl || video.thumbnail || 
+                    "/image.webp"}
                   alt={`${video.title} - ${ep.episodeNumber}-р анги`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition" />
+                {!isFree && !isUnlocked && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <LockClosedIcon className="w-10 h-10 text-white" />
+                  </div>
+                )}
               </div>
 
               <div className="p-4 flex items-center justify-between">
-                <span className="font-medium">{ep.episodeNumber}-р анги</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">
+                  {ep.episodeNumber}-р анги
+                </span>
 
                 {isFree || isUnlocked ? (
                   <Link
                     href={`/videos/${video._id}/part/${ep.episodeNumber}`}
-                    className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow hover:opacity-90 transition"
                   >
-                    <PlayIcon className="w-4 h-4 mr-1" /> Үзэх
+                    <PlayIcon className="w-4 h-4" /> Үзэх
                   </Link>
                 ) : (
                   <button
-                    onClick={() => openConfirmModal(ep._id, ep.episodeNumber, price || 0)}
+                    onClick={() =>
+                      openConfirmModal(ep._id, ep.episodeNumber, price || 0)
+                    }
                     disabled={loadingEpisode === ep._id}
-                    className="inline-flex items-center bg-gradient-to-r from-secondary to-accent text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1 bg-gradient-to-r from-gray-700 to-gray-900 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <LockClosedIcon className="w-4 h-4 mr-1" />
+                    <LockClosedIcon className="w-4 h-4" />
                     {loadingEpisode === ep._id
                       ? "Нээж байна..."
                       : `Нээх (${price} токен)`}
@@ -117,7 +136,7 @@ export default function VideoEpisodes({ video }: Props) {
         })}
       </div>
 
-      <div className="mt-6 text-sm text-gray-500">
+      <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
         Таны токен: <span className="font-bold">{tokens}</span>
       </div>
 
@@ -148,7 +167,8 @@ export default function VideoEpisodes({ video }: Props) {
                 </button>
               </div>
               <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Та {confirmModal.price} токен зарцуулж, {confirmModal.episodeNumber}-р ангийг нээх гэж байна!
+                Та {confirmModal.price} токен зарцуулж,{" "}
+                {confirmModal.episodeNumber}-р ангийг нээх гэж байна!
               </p>
               <div className="flex justify-end gap-3">
                 <button

@@ -86,7 +86,11 @@ export default function VideoGrid({
           >
             <div className="relative w-full h-64">
               <img
-                src={item.thumbnail}
+                src={
+                  // item.thumbnail
+                // || 
+                "/image.webp"
+                }
                 alt={item.title}
                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
               />

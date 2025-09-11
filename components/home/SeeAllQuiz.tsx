@@ -104,7 +104,11 @@ export default function SeeAllQuizPage() {
               >
                 <div className="relative h-40 w-full">
                   <img
-                    src={quiz.image}
+                    src={
+                      // quiz.image
+                      // || 
+                      "/education.png"
+                    }
                     alt={quiz.title}
                     className="w-full h-full object-cover rounded-t-lg"
                   />
